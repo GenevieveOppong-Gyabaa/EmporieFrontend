@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Real-time Chat Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+    <h2>Emporio Chat Test</h2>
+    <input type="text" id="sender" placeholder="Your Name" />
+    <input type="text" id="message" placeholder="Enter message" />
+    <button onclick="sendMessage()">Send</button>
+
+    <br><br>
+
+    <input type="file" id="imageInput">
+    <button onclick="uploadImage()">Send Image</button>
+
+    <ul id="chatBox"></ul>
+
+    <script>
+        let stompClient = null;
+
+        function connect() {
+            const socket = new SockJS('http://localhost:8080/chat');
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, function (frame) {
+                console.log('Connected: ' + frame);
+                stompClient.subscribe("/topic/messages", function (messageOutput) {
+                    const message = JSON.parse(messageOutput.body);
+                    console.log("Received:", message);
+
+                    const li = document.createElement("li");
+                    if (message.messageType === "IMAGE") {
+                        li.innerHTML =`<strong>${message.sender || 'User'}</strong>:<img src="${message.imageUrl}" width="200" />`;
+                    } else {
+                        li.textContent =` ${message.sender || 'User'}:${message.content}`;
+                    }
+                    document.getElementById("chatBox").appendChild(li);
+                });
+            });
+        }
+
+        function sendMessage() {
+
+           if (!stompClient || !stompClient.connected) {
+                alert("WebSocket not connected yet.");
+               return;
+           }
+
+            const sender = document.getElementById("sender").value;
+            const content = document.getElementById("message").value;
+            stompClient.send("/app/chat.sendMessage", {}, JSON.stringify({
+                sender: sender,
+                content: content,
+                messageType: "TEXT"
+            }));
+        }
+
+        function uploadImage() {
+            const file = document.getElementById("imageInput").files[0];
+            const formData = new FormData();
+            formData.append("file", file);
+
+            fetch("/chat/uploadImage", {
+                method: "POST",
+                body: formData
+            }).then(res => res.json()).then(data => {
+                stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(data));
+            });
+        }
+
+        connect();
+    </script>
+</body>
+</html>
