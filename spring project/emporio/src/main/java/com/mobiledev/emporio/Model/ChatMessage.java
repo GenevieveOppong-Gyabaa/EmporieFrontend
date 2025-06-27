@@ -2,6 +2,7 @@ package com.mobiledev.emporio.Model;
 
 public class ChatMessage {
     private String sender;
+    private String receiver;
     private String content;
     private String timeStamp;
     private String messageType; 
@@ -9,8 +10,9 @@ public class ChatMessage {
 
 public ChatMessage(){
 }
-public ChatMessage(String sender, String content, String timeStamp, String messageType, String imageUrl){
+public ChatMessage(String sender, String receiver, String content, String timeStamp, String messageType, String imageUrl){
     this.sender=sender;
+    this.receiver=receiver;
     this.content=content;
     this.timeStamp=timeStamp;
     this.messageType = messageType;
@@ -21,6 +23,13 @@ public String getSender(){
 }
 public void setSender(String sender){
     this.sender=sender;
+}
+
+public String getReceiver() {
+     return receiver;
+}
+public void setReceiver(String receiver) { 
+    this.receiver = receiver; 
 }
 public String getContent(){
     return content;

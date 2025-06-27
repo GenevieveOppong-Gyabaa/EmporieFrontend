@@ -7,17 +7,18 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
-public void registerStompEndpoints(@NonNull StompEndpointRegistry registry){
-    registry.addEndpoint("/chat").setAllowedOriginPatterns("*").withSockJS();//React Native will connect here
-}
-@Override
-public void configureMessageBroker(@NonNull MessageBrokerRegistry registry){
-    registry.enableSimpleBroker("/topic");//messages will be broadcast here
-    registry.setApplicationDestinationPrefixes("/app");//incoming messages from clients
-}
+    public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
+        registry.addEndpoint("/chat").setAllowedOriginPatterns("*").withSockJS();
+    }
+
+    @Override
+    public void configureMessageBroker(@NonNull MessageBrokerRegistry registry) {
+        registry.enableSimpleBroker("/user"); // private queues
+        registry.setApplicationDestinationPrefixes("/app");
+        registry.setUserDestinationPrefix("/user");
+    }
 }
