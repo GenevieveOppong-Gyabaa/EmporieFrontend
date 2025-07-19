@@ -16,6 +16,9 @@ export default function Layout() {
             case 'search':
               iconName = 'search';
               break;
+            case 'deals':
+              iconName = 'pricetag-outline';
+              break;
             case 'favorites':
               iconName = 'heart-outline';
               break;

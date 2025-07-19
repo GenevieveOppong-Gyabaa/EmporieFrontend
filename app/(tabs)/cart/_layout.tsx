@@ -2,13 +2,13 @@
 import { Stack } from 'expo-router';
 
 
-export default function RootLayout() {
+export default function CartLayout() {
  
 
   return (
-      <Stack screenOptions={{headerShown:false}}>
+      <Stack screenOptions={{headerShown:false}}> 
         <Stack.Screen name="index" options={{ headerShown:false }} />
-        {/* <Stack.Screen name="register" options={{ headerShown: false }} /> */}
+        <Stack.Screen name="checkout/index" options={{ headerShown:false }} />
       </Stack>
   );
 }

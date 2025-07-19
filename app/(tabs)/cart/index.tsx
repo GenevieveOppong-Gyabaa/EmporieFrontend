@@ -3,17 +3,18 @@
 import type { CartItem } from "@/context/cartContext"
 import { useCart } from "@/context/cartContext"
 import { Ionicons } from "@expo/vector-icons"
+import { router } from "expo-router"
 import React from "react"
 import {
-    Alert,
-    Image,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native"
 
 // const { width } = Dimensions.get("window")
@@ -70,14 +71,7 @@ const CartPage: React.FC<CartPageProps> = ({ onBack, onContinueShopping }) => {
   }
 
   const handleCheckout = () => {
-    Alert.alert(
-      "Proceed to Checkout",
-      `Total: $${getCartTotal().toFixed(2)}\n${getCartItemsCount()} items`,
-      [
-        { text: "Continue Shopping", onPress: onContinueShopping },
-        { text: "Checkout", style: "default" },
-      ]
-    )
+    router.push("/cart/checkout")
   }
 
   const renderCartItem = (item: CartItem) => {
@@ -163,9 +157,7 @@ const CartPage: React.FC<CartPageProps> = ({ onBack, onContinueShopping }) => {
         
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} style={styles.headerButton}>
-            <Ionicons name="arrow-back" size={24} color="#333" />
-          </TouchableOpacity>
+          
           <Text style={styles.headerTitle}>Shopping Cart</Text>
           <View style={styles.headerButton} />
         </View>
@@ -175,7 +167,7 @@ const CartPage: React.FC<CartPageProps> = ({ onBack, onContinueShopping }) => {
           <Ionicons name="bag-outline" size={80} color="#ccc" />
           <Text style={styles.emptyTitle}>Your cart is empty</Text>
           <Text style={styles.emptyMessage}>Add some amazing deals to get started!</Text>
-          <TouchableOpacity style={styles.continueButton} onPress={onContinueShopping}>
+          <TouchableOpacity style={styles.continueButton} onPress={() => router.push("/")}>
             <Text style={styles.continueButtonText}>Continue Shopping</Text>
           </TouchableOpacity>
         </View>
@@ -190,7 +182,7 @@ const CartPage: React.FC<CartPageProps> = ({ onBack, onContinueShopping }) => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.headerButton}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
+          {/* <Ionicons name="arrow-back" size={24} color="#333" /> */}
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Shopping Cart ({getCartItemsCount()})</Text>
         <TouchableOpacity onPress={handleClearCart} style={styles.headerButton}>
@@ -245,7 +237,7 @@ const CartPage: React.FC<CartPageProps> = ({ onBack, onContinueShopping }) => {
 
       {/* Bottom Actions */}
       <View style={styles.bottomActions}>
-        <TouchableOpacity style={styles.continueShoppingButton} onPress={onContinueShopping}>
+        <TouchableOpacity style={styles.continueShoppingButton} onPress={() => router.push("/")}>
           <Text style={styles.continueShoppingText}>Continue Shopping</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>

@@ -1,5 +1,6 @@
 "use client"
 
+import { useCart } from "@/context/cartContext"
 import { findDealById } from "@/data/deals"
 import { Ionicons } from "@expo/vector-icons"
 import { router } from "expo-router"
@@ -7,16 +8,16 @@ import { useLocalSearchParams } from "expo-router/build/hooks"
 import type React from "react"
 import { useState } from "react"
 import {
-    Alert,
-    Dimensions,
-    Image,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Dimensions,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native"
 
 const { width } = Dimensions.get("window")
@@ -29,6 +30,7 @@ interface SingleDealPageProps {
 const SingleDealPage: React.FC<SingleDealPageProps> = () => {
     const {dealId} = useLocalSearchParams()
   const deal = findDealById(+(dealId as string))
+  const { addToCart } = useCart()
 
   const [selectedColor, setSelectedColor] = useState(deal?.colors?.[0] || "#000000")
   const [selectedSize, setSelectedSize] = useState(deal?.sizes?.[0] || "M")
@@ -80,6 +82,10 @@ const SingleDealPage: React.FC<SingleDealPageProps> = () => {
   }
 
   const handleAddToCart = () => {
+    if (!deal) return
+    
+    addToCart(deal, quantity, selectedColor, selectedSize)
+    
     Alert.alert("Added to Cart! 🛒", `${deal.title} has been added to your cart!`, [
       { text: "Continue Shopping", onPress: () => router.back() },
       { text: "View Cart", style: "default" , onPress:() => router.push("/cart")  },
@@ -87,10 +93,13 @@ const SingleDealPage: React.FC<SingleDealPageProps> = () => {
   }
 
   const handleBuyNow = () => {
-    Alert.alert("Proceed to Checkout 💳", `Ready to purchase ${deal.title} for ${calculateTotal()}?`, [
-      { text: "Cancel", style: "cancel" },
-      { text: "Checkout", style: "default" },
-    ])
+    if (!deal) return
+    
+    // Add item to cart first
+    addToCart(deal, quantity, selectedColor, selectedSize)
+    
+    // Then navigate to checkout
+    router.push("/cart/checkout")
   }
 
 //   const handleShare = () => {
