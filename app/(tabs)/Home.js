@@ -14,6 +14,8 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+
 
 /* ─────────────── Local assets ─────────────── */
 import Bags from '../../assets/images/bags.png';
@@ -89,6 +91,8 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      <StatusBar translucent backgroundColor="transparent" style="light"/>
+
       {/* ███ Header */}
       <View style={[styles.header, { paddingTop: insets.top }]}>
         <View style={styles.searchBar}>
@@ -213,7 +217,7 @@ const ProductCard = ({ img, title, price, rating }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#fff',
     paddingHorizontal: 10,
   },
 
@@ -222,6 +226,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
+
   },
   searchBar: {
     flex: 1,

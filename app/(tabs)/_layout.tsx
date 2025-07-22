@@ -16,16 +16,21 @@ export default function TabLayout() {
             size={24}/>,
             title: "Home",
             }} />
-       <Tabs.Screen
-        name="Shops"
-        options={{
-            headerShown: false,
-            tabBarIcon: ({focused, color})=> <Ionicons
-             name={focused ? "home" : "home-outline"}
-             color={color}
-               size={24} />,
-               title: "Shops",
-        }} />
+  <Tabs.Screen
+            name="SearchShop"
+            options={{
+           headerShown: false,
+            tabBarIcon: ({ focused, color }) => (
+      <Ionicons
+        name={focused ? "bag" : "bag-outline"}
+        color={color}
+        size={24}
+      />
+    ),
+    title: "Shops",
+  }}
+/>
+
        <Tabs.Screen
         name="Deals"
         options={{

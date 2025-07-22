@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, StatusBar, Platform } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -21,6 +21,13 @@ export default function SplashScreen() {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
+      {/* Make status bar content visible while allowing background behind it */}
+      <StatusBar
+        barStyle="light-content"
+        translucent
+        backgroundColor="transparent"
+      />
+
       <Animatable.Image
         animation="bounceIn"
         duration={1500}
@@ -34,6 +41,7 @@ export default function SplashScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -1,7 +1,15 @@
-import { router } from 'expo-router';
+import { router, Link } from 'expo-router';
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { Link } from 'expo-router';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  StatusBar,
+  Platform,
+} from 'react-native';
 
 export default function UserInfoScreen() {
   const [firstName, setFirstName] = useState('');
@@ -14,14 +22,14 @@ export default function UserInfoScreen() {
       return;
     }
 
-    // You can store or send the data here (e.g., via API)
     Alert.alert('Welcome', `Hi ${firstName} ${lastName}!`);
-
     router.replace('./(tabs)/Home');
   };
 
   return (
     <View style={styles.container}>
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+      
       <Text style={styles.title}>Let's Get to Know You</Text>
 
       <TextInput
@@ -48,12 +56,13 @@ export default function UserInfoScreen() {
         secureTextEntry
         placeholderTextColor="#888"
       />
-       <Text style={{ marginTop: 2 }}>
-              Forgot Password?{" "}
-              <Link href="/ForgotPassword" style={{ color: 'blue' }}>
-                Change
-              </Link>
-            </Text>
+
+      <Text style={{ marginTop: 2 }}>
+        Forgot Password?{" "}
+        <Link href="/ForgotPassword" style={{ color: 'blue' }}>
+          Change
+        </Link>
+      </Text>
 
       <TouchableOpacity style={styles.continueBtn} onPress={handleContinue}>
         <Text style={styles.continueText}>Continue</Text>
@@ -61,9 +70,11 @@ export default function UserInfoScreen() {
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     padding: 24,
     justifyContent: 'center',
     backgroundColor: '#fff',

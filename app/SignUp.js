@@ -1,6 +1,16 @@
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  Image,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  Platform,
+} from "react-native";
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState("");
@@ -16,16 +26,16 @@ export default function SignUpScreen() {
       return;
     }
 
-    // Navigate if email is valid
     router.replace("./UserInfo");
   };
 
   return (
-    
-    
     <View style={styles.container}>
+      {/* Status bar overlay */}
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+
       <Text style={styles.text}>Create an account</Text>
-      <Image source={require('../assets/images/signUpImage.png')} style={styles.girl}/>
+      <Image source={require('../assets/images/signUpImage.png')} style={styles.girl} />
       <Text>Enter your email to sign up for this app</Text>
 
       <TextInput
@@ -54,6 +64,7 @@ export default function SignUpScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: '#fff',
