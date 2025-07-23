@@ -1,3 +1,8 @@
+// Updated search shop screen for Emporie app
+// This code is a React Native component that displays a search interface
+// for various product categories in the Emporie app. It includes a search bar
+// and a list of categories with images. When a category is pressed, it navigates
+// to a screen showing items in that category.
 import React, { useState } from 'react';
 import {
   View,
