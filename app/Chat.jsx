@@ -1,3 +1,13 @@
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+
+export default function Chat() {
+  return (
+    <View>
+      <Text style={styles.title}>Chat Screen</Text>
+    </View>
+  );
+}
 /*
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';

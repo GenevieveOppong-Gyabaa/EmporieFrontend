@@ -1,4 +1,3 @@
-// app/favorites.js
 import React from 'react';
 import {
   SafeAreaView,
@@ -6,13 +5,29 @@ import {
   StyleSheet,
   Text,
   View,
+  StatusBar,
+  Platform,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const FavoritesScreen = ({ favorites = [] }) => {
   const hasFavorites = favorites.length > 0;
+  const insets = useSafeAreaInsets();
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+
+      <LinearGradient
+        colors={['#361696', '#6E44FF']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.header, { paddingTop: insets.top + 16 }]}
+      >
+        <Text style={styles.headerText}>Favorites</Text>
+      </LinearGradient>
+
       <View style={styles.container}>
         {hasFavorites ? (
           <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -41,6 +56,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
 
+  header: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
+
+  headerText: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+
   container: {
     flex: 1,
     alignItems: 'center',
@@ -65,7 +91,7 @@ const styles = StyleSheet.create({
 
   /* List */
   scrollContainer: {
-    paddingBottom: 100, // keeps content clear of the global BottomNav
+    paddingBottom: 100,
   },
   favoriteItem: {
     marginBottom: 16,

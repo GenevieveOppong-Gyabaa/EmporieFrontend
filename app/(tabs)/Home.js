@@ -1,7 +1,5 @@
-// app/home.js
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { useState } from 'react';
+
+import React, { useState } from 'react';
 import {
   FlatList,
   Image,
@@ -12,13 +10,19 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Platform,
+  SafeAreaView,
+  Dimensions,
+  StatusBar
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
+//import { StatusBar } from 'expo-status-bar';
 
 
 /* ─────────────── Local assets ─────────────── */
-import Bags from '../../assets/images/bags.png';
+//import Bags from '../../assets/images/bags.png';
 import Beauty from '../../assets/images/beauty.png';
 import Electronics from '../../assets/images/electronics.png';
 import Item15 from '../../assets/images/Item 16.png';
@@ -39,60 +43,69 @@ import Item8 from '../../assets/images/Item8.png';
 import Item9 from '../../assets/images/Item9.png';
 import MenOfficial from '../../assets/images/MenWear.png';
 import discoverImg from '../../assets/images/partygift.png';
-import Shoes from '../../assets/images/shoes.png';
-import WomenCasual from '../../assets/images/womenwear.png';
-import Art from '../../assets/images/Art.png';
-import Kitchen from '../../assets/images/Kitchen.png';
-import HomeDecor from '../../assets/images/Decor.png';
+import Health from '../../assets/images/Health.png';
+import Toys from '../../assets/images/Toys.png';
+import Groceries from '../../assets/images/Groceries.png';
+import Books from '../../assets/images/Books.png';
+import Art from '../../assets/images/Art.png';//added arts
+import Sports from '../../assets/images/Sport.png';
+import HomeDecor from '../../assets/images/HomeandLiving.png';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 /* ─────────────── Static data ─────────────── */
 const categories = [
   { id: '1', name: 'Beauty',              image: Beauty },
-  { id: '2', name: "Electronics", image: Electronics },
-  { id: '3', name: "Women's Wear",      image: WomenCasual },
-  { id: '4', name: 'Bags',               image: Bags },
-  { id: '5', name: 'Shoes',                image: Shoes },
-  { id: '6', name: "Men's wear",         image: MenOfficial },
-  { id: '7', name: "Art",         image: Art },
-  { id: '8', name: "Kitchen",         image: Kitchen },
-  { id: '9', name: "Home Decor",         image: HomeDecor },
+  { id: '2', name: "Fashion", image: MenOfficial },
+  { id: '3', name: "Health",      image: Health },
+  { id: '4', name: 'Toys',               image: Toys },
+  { id: '5', name: 'Electronics',         image: Electronics },
+  { id: '6', name: "Groceries",         image: Groceries },
+  { id: '7', name: "Books",         image: Books },
+  { id: '8', name: "Art",         image: Art },
+  { id: '9', name: "Sports",         image: Sports },
+  { id: '10', name: "Home Decor",         image: HomeDecor },
 ];
 
 const productData = [
   { id: 'p1',  img: Item1,  title: "Mixed-beads for male and female",  price: 30.00, rating: 4.3 },
-  { id: 'p2',  img: Item15,  title: "Mixed-beads for male and female",  price: 30.00, rating: 4.3 },
-  { id: 'p3',  img: Item16,  title: "Lil's beads",  price: 20.00, rating: 4.3 },
-  { id: 'p4',  img: Item2,  title: 'Scrunchy',  price: 10.00, rating: 4.7 },
-  { id: 'p5',  img: Item3,  title: "Scrunchy",  price: 10.00, rating: 4.8 },
-  { id: 'p6',  img: Item4,  title: "Peach-colored hair holder",  price: 10.00, rating: 4.2   },
-  { id: 'p7',  img: Item5,  title: 'Trendy hair holder',                price: 10.00, rating: 4.5  },
-  { id: 'p8',  img: Item6,  title: 'Black and white hair band',             price: 15.00, rating: 4.1  },
-  { id: 'p9',  img: Item7,  title: 'Pink-inspired bonnet',              price: 50.00, rating: 4.6 },
-  { id: 'p10',  img: Item8,  title: 'Plain black bonnet',                price: 50.00, rating: 4.0 },
-  { id: 'p11',  img: Item9,  title: 'Trendy hair bonnet',             price: 50.00, rating: 4.4},
-  { id: 'p12', img: Item10, title: 'Beautiful hair bands',              price: 15.00, rating: 4.9  },
-  { id: 'p13', img: Item11, title: 'Hair bonnet',              price: 50.00, rating: 4.3  },
-  { id: 'p14', img: Item12, title: 'Sweet honey',               price: 33.00, rating: 4.2  },
-  { id: 'p15', img: Item13, title: 'Phone case',             price: 30.00, rating: 4.8  },
-  { id: 'p16', img: Item14, title: "Luxurious lady's bag",              price: 500.00, rating: 4.0  },
+  { id: 'p1',  img: Item15,  title: "Mixed-beads for male and female",  price: 30.00, rating: 4.3 },
+  { id: 'p1',  img: Item16,  title: "Lil's beads",  price: 20.00, rating: 4.3 },
+  { id: 'p2',  img: Item2,  title: 'Scrunchy',  price: 10.00, rating: 4.7 },
+  { id: 'p3',  img: Item3,  title: "Scrunchy",  price: 10.00, rating: 4.8 },
+  { id: 'p4',  img: Item4,  title: "Peach-colored hair holder",  price: 10.00, rating: 4.2   },
+  { id: 'p5',  img: Item5,  title: 'Trendy hair holder',                price: 10.00, rating: 4.5  },
+  { id: 'p6',  img: Item6,  title: 'Black and white hair band',             price: 15.00, rating: 4.1  },
+  { id: 'p7',  img: Item7,  title: 'Pink-inspired bonnet',              price: 50.00, rating: 4.6 },
+  { id: 'p8',  img: Item8,  title: 'Plain black bonnet',                price: 50.00, rating: 4.0 },
+  { id: 'p9',  img: Item9,  title: 'Trendy hair bonnet',             price: 50.00, rating: 4.4},
+  { id: 'p10', img: Item10, title: 'Beautiful hair bands',              price: 15.00, rating: 4.9  },
+  { id: 'p11', img: Item11, title: 'Hair bonnet',              price: 50.00, rating: 4.3  },
+  { id: 'p12', img: Item12, title: 'Sweet honey',               price: 33.00, rating: 4.2  },
+  { id: 'p13', img: Item13, title: 'Phone case',             price: 30.00, rating: 4.8  },
+  { id: 'p14', img: Item14, title: "Luxurious lady's bag",              price: 500.00, rating: 4.0  },
 ];
 
-/* ─────────────── Component ─────────────── */
+
 export default function HomeScreen() {
   const navigation = useNavigation();
-  const insets     = useSafeAreaInsets();        // ← safe‑area info
-  const [modalVisible, setModalVisible]       = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const insets = useSafeAreaInsets();
 
-  const handleCategorySelect = (cat) => {
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+
+   const handleCategorySelect = (cat) => {
     setSelectedCategory(cat);
     setModalVisible(false);
   };
-
+ 
   return (
-    <View style={styles.container}>
-      <StatusBar translucent backgroundColor="transparent" style="light"/>
+   <SafeAreaView style={[styles.container, { paddingTop: 0 }]}>
+    <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+      {/*<StatusBar backgroundColor="#fff" style="dark" />*/}
 
+      {/*<View style={styles.container}>*/}
+      {/*<View style={styles.container}>*/}
       {/* ███ Header */}
       <View style={[styles.header, { paddingTop: insets.top }]}>
         <View style={styles.searchBar}>
@@ -103,7 +116,7 @@ export default function HomeScreen() {
             style={{ flex: 1, fontSize: 15 }}
           />
         </View>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('Details')}>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('Favorites')}>
           <Ionicons name="notifications-outline" size={22} color="#222" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('Profile')}>
@@ -112,6 +125,7 @@ export default function HomeScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
+
         {/* ███ Discover banner */}
         <View style={styles.discoverCard}>
           <View style={{ flex: 1, paddingRight: 12 }}>
@@ -177,9 +191,21 @@ export default function HomeScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+      {/*</View>*/}
+
+    {/* Floating Grid Icon */}
+    <TouchableOpacity 
+    style={styles.floatingIcon}
+    onPress={() => navigation.navigate("Dashboard")}
+    >
+      <Ionicons name="grid" size={28} color="green" />
+    </TouchableOpacity>
+   {/*</View>*/}
+  </SafeAreaView>
+
   );
 }
+
 
 /* ─────────────── Product card ─────────────── */
 const ProductCard = ({ img, title, price, rating }) => (
@@ -213,12 +239,13 @@ const ProductCard = ({ img, title, price, rating }) => (
   </View>
 );
 
+
 /* ─────────────── Styles ─────────────── */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingHorizontal: 10,
+    paddingHorizontal: 5, // ✅ remove side padding
   },
 
   /* header */
@@ -226,13 +253,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
-
   },
   searchBar: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#f9f9f9',
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 7,
@@ -273,7 +299,7 @@ const styles = StyleSheet.create({
   },
   categoriesGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   categoryCard: {
-    width: '48%',
+    width: SCREEN_WIDTH * 0.48, // ✅ responsive width
     aspectRatio: 1.1,
     borderRadius: 12,
     marginBottom: 12,
@@ -315,7 +341,7 @@ const styles = StyleSheet.create({
 
   /* product grid */
   productCard: {
-    width: '48%',
+    width: SCREEN_WIDTH * 0.48, // ✅ responsive width
     backgroundColor: '#fff',
     borderRadius: 12,
     marginBottom: 14,
@@ -351,4 +377,17 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     elevation: 3,
   },
+  floatingIcon: {
+  position: 'absolute',
+  bottom: 20,
+  right: 20,
+  backgroundColor: '#fff',
+  borderRadius: 50,
+  padding: 12,
+  elevation: 5,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.2,
+  shadowRadius: 4,
+},
 });

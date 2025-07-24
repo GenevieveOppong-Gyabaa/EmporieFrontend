@@ -1,8 +1,3 @@
-// Updated search shop screen for Emporie app
-// This code is a React Native component that displays a search interface
-// for various product categories in the Emporie app. It includes a search bar
-// and a list of categories with images. When a category is pressed, it navigates
-// to a screen showing items in that category.
 import React, { useState } from 'react';
 import {
   View,
@@ -13,20 +8,25 @@ import {
   FlatList,
   Dimensions,
   Image,
+  StatusBar,
+  Platform,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const categories = [
-  { name: 'Art & Collectibles', image: require('../../assets/ArtandCollectibles.png') },
-  { name: 'Accessories', image: require('../../assets/Accessories.png') },
-  { name: 'Clothing', image: require('../../assets/Clothing.png') },
-  { name: 'Bags', image: require('../../assets/Bags2.png') },
-  { name: 'Shoes', image: require('../../assets/Shoes2.png') },
-  { name: 'Tools', image: require('../../assets/Tools.png') },
-  { name: 'Phones', image: require('../../assets/Phones.png') },
-  { name: 'Home & Living', image: require('../../assets/HomeandLiving.png') },
-  { name: 'Games', image: require('../../assets/Games.png') },
+  { name: 'Art & Collectibles', image: require('../../assets/images/ArtandCollectibles.png') },
+  { name: 'Groceries', image: require('../../assets/images/Groceries.png') },
+  { name: 'Fashion', image: require('../../assets/images/Bags2.png') },
+  { name: 'Toys', image: require('../../assets/images/Toys.png') },
+  { name: 'Health', image: require('../../assets/images/Health.png') },
+  { name: 'Beauty', image: require('../../assets/images/Accessories.png') },
+  { name: 'Electronics', image: require('../../assets/images/Phones.png') },
+  { name: 'Home & Living', image: require('../../assets/images/HomeandLiving.png') },
+  { name: 'Sports', image: require('../../assets/images/Games.png') },
+  {name: 'Books', image: require('../../assets/images/Books.png') },
 ];
 
 const { width } = Dimensions.get('window');
@@ -34,20 +34,31 @@ const { width } = Dimensions.get('window');
 const SearchShop = () => {
   const [search, setSearch] = useState('');
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   const handleCategoryPress = (category) => {
     navigation.navigate('CategoryItemsScreen', { category });
   };
 
   return (
+    <View style={styles.screen}>
+      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+      <LinearGradient
+        colors={['#361696', '#6E44FF']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.header, { paddingTop: insets.top + 16 }]}
+      >
+         <Text style={styles.headerTitle}>🛍 Discover Your Style</Text>
+      </LinearGradient>
+
       <FlatList
         data={categories}
         keyExtractor={(item) => item.name}
         contentContainerStyle={styles.listContainer}
         ListHeaderComponent={
           <>
-            <Text style={styles.title}>🛍 Discover Your Style</Text>
-
+           
             <View style={styles.searchBar}>
               <Feather name="search" size={20} color="#888" />
               <TextInput
@@ -73,18 +84,33 @@ const SearchShop = () => {
           </TouchableOpacity>
         )}
       />
+    </View>
   );
 };
 
 export default SearchShop;
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  header: {
+    width: '100%',
+    paddingBottom: 20,
+    paddingHorizontal: 16,
+  },
+  headerTitle: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
   title: {
     fontSize: 26,
     fontWeight: '800',
     color: '#1a1a1a',
     paddingHorizontal: 16,
-    marginTop: 20,
+    
     marginBottom: 12,
     letterSpacing: 0.4,
   },
@@ -95,6 +121,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 14,
     height: 48,
+    marginTop: 20,
     marginBottom: 24,
     marginHorizontal: 16,
     shadowColor: '#000',

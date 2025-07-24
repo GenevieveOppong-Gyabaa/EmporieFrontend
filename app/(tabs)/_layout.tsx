@@ -1,6 +1,7 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
+
 export default function TabLayout() {
   return (
     <Tabs
@@ -32,9 +33,9 @@ export default function TabLayout() {
 />
 
        <Tabs.Screen
-        name="Deals"
+        name="deals"
         options={{
-            headerTitle: "Deals",
+            headerShown: false,
             tabBarIcon: ({focused, color})=> <Ionicons 
             name={focused ? "pricetag" : "pricetag-outline"} 
             color={color}
@@ -45,7 +46,7 @@ export default function TabLayout() {
       <Tabs.Screen
        name="Favorites" 
        options={{ 
-            headerTitle: "Favorites",
+            headerShown: false,
             tabBarIcon: ({focused, color})=> <Ionicons 
             name={focused ? "heart" : "heart-outline"} 
             color={color}
@@ -54,7 +55,7 @@ export default function TabLayout() {
         }} />
         
         <Tabs.Screen    
-         name="Cart"
+         name="cart"
             options={{
                 headerTitle: "Cart",
                 tabBarIcon: ({focused, color})=> <Ionicons 
@@ -63,6 +64,17 @@ export default function TabLayout() {
                 size={24}/>,
                 title: "Cart",
             }} />
+           {/*<Tabs.Screen
+            name="Dashboard"
+            options={{
+                headerShown: false,
+                tabBarIcon: ({focused, color})=> <Ionicons 
+                name={focused ? "grid" : "grid-outline"} 
+                color={color}
+                size={24}/>,
+                title: "Dashboard",
+            }} />*/}
     </Tabs>
+
   )
 }

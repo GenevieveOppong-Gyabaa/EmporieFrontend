@@ -14,9 +14,24 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import RNPickerSelect from 'react-native-picker-select';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+const regions = [
+  'Greater Accra', 'Ashanti', 'Eastern', 'Western', 'Central',
+  'Volta', 'Northern', 'Upper East', 'Upper West', 'Savannah',
+  'Bono', 'Bono East', 'North East', 'Oti', 'Ahafo', 'Western North',
+].map(region => ({ label: region, value: region }));
+
+const categories = [
+  'Electronics', 'Fashion', 'Home', 'Beauty', 'Health',
+  'Toys', 'Groceries', 'Books', 'Sports', 'Other',
+].map(cat => ({ label: cat, value: cat }));
+
+const deliveryServices = [
+  { label: 'Doorstep Delivery', value: 'doorstep' },
+];
 
 const SellProductScreen = ({ navigation }) => {
   const [form, setForm] = useState({
@@ -65,8 +80,8 @@ const SellProductScreen = ({ navigation }) => {
     }
   };
 
-   const handleNavigation = (screen) => {
-    navigation.navigate(screen);
+  const removeImage = (field) => {
+    setForm({ ...form, [field]: null });
   };
 
   const handleSubmit = () => {
@@ -122,29 +137,64 @@ const SellProductScreen = ({ navigation }) => {
         style={styles.header}
       >
         <Text style={styles.headerTitle}>Sell a Product</Text>
-        {/*<SafeAreaView style={styles.safeHeader}>
-          
-        </SafeAreaView>*/}
       </LinearGradient>
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={{ width: '90%', alignSelf: 'center' }}>
-          {renderInput('Category', 'category')}
+          {/* Category Picker */}
+          <Text style={styles.emptyText}>Category</Text>
+          <RNPickerSelect
+            onValueChange={(value) => setForm({ ...form, category: value })}
+            items={categories}
+            value={form.category}
+            placeholder={{ label: 'Select Category', value: null }}
+            style={pickerSelectStyles}
+          />
+          {errors.category && <Text style={styles.errorText}>{errors.category}</Text>}
+
+          {/* Title */}
           {renderInput('Title', 'title')}
-          {renderInput('Region', 'region')}
+
+          {/* Region Picker */}
+          <Text style={styles.emptyText}>Region</Text>
+          <RNPickerSelect
+            onValueChange={(value) => setForm({ ...form, region: value })}
+            items={regions}
+            value={form.region}
+            placeholder={{ label: 'Select Region', value: null }}
+            style={pickerSelectStyles}
+          />
+
+          {/* Name, Phone */}
           {renderInput('Name', 'name')}
           {renderInput('Phone number', 'phone', 'phone-pad')}
-          {renderInput('Delivery Services', 'deliveryServices')}
 
+          {/* Delivery Service */}
+          <Text style={styles.emptyText}>Delivery Services</Text>
+          <RNPickerSelect
+            onValueChange={(value) => setForm({ ...form, deliveryServices: value })}
+            items={deliveryServices}
+            value={form.deliveryServices}
+            placeholder={{ label: 'Select Delivery Option', value: null }}
+            style={pickerSelectStyles}
+          />
+
+          {/* Image Picker */}
           <Text style={styles.emptyText}>Add Image</Text>
-          <TouchableOpacity style={styles.imagePicker} onPress={() => handlePickImage('image')}>
-            {form.image ? (
+          {form.image ? (
+            <View style={styles.imageWrapper}>
               <Image source={{ uri: form.image }} style={styles.image} />
-            ) : (
+              <TouchableOpacity onPress={() => removeImage('image')}>
+                <Text style={styles.removeText}>Remove</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity style={styles.imagePicker} onPress={() => handlePickImage('image')}>
               <Text>Select Image</Text>
-            )}
-          </TouchableOpacity>
+            </TouchableOpacity>
+          )}
 
+          {/* Description */}
           <Text style={styles.emptyText}>Description</Text>
           <TextInput
             style={[styles.input, { height: 100 }, errors.description && { borderColor: 'red' }]}
@@ -158,15 +208,22 @@ const SellProductScreen = ({ navigation }) => {
           />
           {errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
 
+          {/* Upload Picker */}
           <Text style={styles.emptyText}>Upload</Text>
-          <TouchableOpacity style={styles.imagePicker} onPress={() => handlePickImage('upload')}>
-            {form.upload ? (
+          {form.upload ? (
+            <View style={styles.imageWrapper}>
               <Image source={{ uri: form.upload }} style={styles.image} />
-            ) : (
+              <TouchableOpacity onPress={() => removeImage('upload')}>
+                <Text style={styles.removeText}>Remove</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity style={styles.imagePicker} onPress={() => handlePickImage('upload')}>
               <Text>Select File</Text>
-            )}
-          </TouchableOpacity>
+            </TouchableOpacity>
+          )}
 
+          {/* Submit */}
           <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
             <Text style={styles.submitText}>Submit</Text>
           </TouchableOpacity>
@@ -177,6 +234,31 @@ const SellProductScreen = ({ navigation }) => {
 };
 
 export default SellProductScreen;
+
+const pickerSelectStyles = {
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 6,
+    backgroundColor: '#f9f9f9',
+    color: '#000',
+    marginBottom: 10,
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 6,
+    backgroundColor: '#f9f9f9',
+    color: '#000',
+    marginBottom: 10,
+  },
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -196,11 +278,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
-  /*safeHeader: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 0,
-  },*/
   headerTitle: {
     color: '#fff',
     fontSize: 22,
@@ -233,10 +310,19 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginTop: 8,
   },
+  imageWrapper: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   image: {
     width: 100,
     height: 100,
     borderRadius: 6,
+  },
+  removeText: {
+    color: 'red',
+    marginTop: 5,
+    fontSize: 13,
   },
   submitButton: {
     backgroundColor: '#361696',

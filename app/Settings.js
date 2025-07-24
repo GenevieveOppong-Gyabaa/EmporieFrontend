@@ -24,7 +24,7 @@ export default function SettingsScreen() {
       icon: 'create-outline',
       label: 'Edit Info',
       gradient: ['#4ECDC4', '#66E9E4'],
-      route: './CustomerInfo',
+      route: './EditInfo',
     },
     {
       icon: 'time-outline',

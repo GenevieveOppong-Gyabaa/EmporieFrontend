@@ -79,6 +79,9 @@ export default function EditInfoScreen() {
 
   return (
     <View style={styles.container}>
+      {/* White background to prevent color showing behind header */}
+      <View style={styles.whiteBackground} />
+
       <LinearGradient
         colors={['#361696', '#9C4DCC', '#DABEFF']}
         start={{ x: 0, y: 0 }}
@@ -93,6 +96,7 @@ export default function EditInfoScreen() {
 
       <View style={styles.formContainer}>
         <View style={styles.form}>
+          <Text style={styles.heading}>Update Your Information</Text>
           <TextInput
             style={styles.input}
             placeholder="Full Name"
@@ -135,9 +139,17 @@ export default function EditInfoScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#fff', // Ensures full screen background is white
     paddingTop: STATUS_BAR_HEIGHT,
-    marginBottom: 100,
+  },
+  whiteBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#fff',
+    zIndex: -1, // Ensure it stays under everything
   },
   header: {
     position: 'absolute',
@@ -166,6 +178,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
+    marginTop: 0,
   },
   form: {
     width: '100%',
@@ -191,4 +204,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  heading: {
+    fontSize: 22,
+    fontWeight: '600',
+    marginBottom: 100,
+    textAlign: 'center',
+  },
 });
+ 
