@@ -1,102 +1,76 @@
+import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
+    Alert,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
-const ForgotPasswordScreen = ({ navigation }) => {
-  const [identifier, setIdentifier] = useState(''); // For username or email
-  const [token, setToken] = useState('');
+export default function ForgotPasswordScreen() {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleForgotPassword = async () => {
-    if (!identifier) {
-      Alert.alert('Error', 'Please enter your username or email.');
+    if (!email) {
+      Alert.alert('Missing Info', 'Please enter your email.');
       return;
     }
-
+    setLoading(true);
     try {
-      const response = await fetch('https://your-backend.com/forgot-password', {
+      const response = await fetch('https://your-backend.com/api/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier }), // assuming your backend handles either
+        body: JSON.stringify({ email }),
       });
-
-      const text = await response.text();
-
-      if (text.includes('Reset token')) {
-        const tokenValue = text.split(':')[1].trim();
-        setToken(tokenValue);
-        Alert.alert('Success', 'Token received. Continue to reset.');
-      } else {
-        Alert.alert('Error', text);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to send reset email');
       }
+      Alert.alert('Success', 'Password reset email sent!');
+      router.replace('/Login');
     } catch (error) {
-      Alert.alert('Error', 'Something went wrong.');
-      console.error(error);
+      Alert.alert('Error', error.message || 'Could not connect to backend.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.container}
-      >
-        <Text style={styles.title}>Forgot Password</Text>
-
-        <TextInput
-          placeholder="Enter your username or email"
-          value={identifier}
-          onChangeText={setIdentifier}
-          style={styles.input}
-          placeholderTextColor="#999"
-          autoCapitalize="none"
-        />
-
-        <TouchableOpacity style={styles.button} onPress={handleForgotPassword}>
-          <Text style={styles.buttonText}>Request Reset Token</Text>
-        </TouchableOpacity>
-
-        {token ? (
-          <>
-            <Text style={styles.token}>Token: {token}</Text>
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={() =>
-                navigation.navigate('ResetPassword', {
-                  identifier,
-                  token,
-                })
-              }
-            >
-              <Text style={styles.secondaryButtonText}>Request Reset Token</Text>
-            </TouchableOpacity>
-          </>
-        ) : null}
-      </KeyboardAvoidingView>
-    </ScrollView>
+    <View style={styles.container}>
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+      <Text style={styles.title}>Forgot Password</Text>
+      <TextInput
+        placeholder="Email"
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
+        placeholderTextColor="#888"
+        autoCapitalize="none"
+      />
+      <TouchableOpacity style={styles.resetBtn} onPress={handleForgotPassword} disabled={loading}>
+        <Text style={styles.resetText}>{loading ? 'Sending...' : 'Send Reset Email'}</Text>
+      </TouchableOpacity>
+      <Text style={{ marginTop: 16 }}>
+        Remembered your password?{' '}
+        <Link href="/Login" style={{ color: 'blue' }}>
+          Login
+        </Link>
+      </Text>
+    </View>
   );
-};
-
-export default ForgotPasswordScreen;
+}
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    backgroundColor: '#fff',
-  },
   container: {
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
     paddingVertical: 40,
+    backgroundColor: '#fff',
   },
   title: {
     fontSize: 24,
@@ -116,34 +90,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
     color: '#333',
   },
-  button: {
+  resetBtn: {
     backgroundColor: '#361696',
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
     marginBottom: 20,
   },
-  buttonText: {
+  resetText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-  },
-  token: {
-    fontSize: 14,
-    textAlign: 'center',
-    color: '#666',
-    marginBottom: 20,
-  },
-  secondaryButton: {
-    borderColor: '#361696',
-    borderWidth: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    color: '#361696',
-    fontWeight: '600',
-    fontSize: 15,
   },
 });

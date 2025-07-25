@@ -1,29 +1,45 @@
-import { router, Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  View,
+  Alert,
+  Platform,
+  StatusBar,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Alert,
-  StatusBar,
-  Platform,
+  View,
 } from 'react-native';
 
 export default function UserInfoScreen() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!firstName || !lastName || !password) {
       Alert.alert('Missing Info', 'Please fill in all fields.');
       return;
     }
-
-    Alert.alert('Welcome', `Hi ${firstName} ${lastName}!`);
-    router.replace('./(tabs)/Home');
+    setLoading(true);
+    try {
+      const response = await fetch('https://your-backend.com/api/userinfo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firstName, lastName, password }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to save user info');
+      }
+      Alert.alert('Welcome', `Hi ${firstName} ${lastName}!`);
+      router.replace('./(tabs)/Home');
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Could not connect to backend.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -64,8 +80,8 @@ export default function UserInfoScreen() {
         </Link>
       </Text>
 
-      <TouchableOpacity style={styles.continueBtn} onPress={handleContinue}>
-        <Text style={styles.continueText}>Continue</Text>
+      <TouchableOpacity style={styles.continueBtn} onPress={handleContinue} disabled={loading}>
+        <Text style={styles.continueText}>{loading ? 'Saving...' : 'Continue'}</Text>
       </TouchableOpacity>
     </View>
   );

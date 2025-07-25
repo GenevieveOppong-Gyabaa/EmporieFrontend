@@ -1,73 +1,58 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Image,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  Platform
+    ActivityIndicator,
+    FlatList,
+    Platform,
+    StatusBar,
+    StyleSheet,
+    Text,
+    View
 } from 'react-native';
 
-const OrderHistoryScreen = () => {
+export default function OrderHistoryScreen() {
   const navigation = useNavigation();
-  const [orders, setOrders] = useState([]); // Fetch this from backend eventually
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    StatusBar.setBarStyle('light-content'); // white text/icons
-    if (Platform.OS === 'android') {
-      StatusBar.setTranslucent(true);
-      StatusBar.setBackgroundColor('transparent');
-    }
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch('https://your-backend.com/api/orders');
+        if (!response.ok) throw new Error('Failed to fetch orders');
+        const data = await response.json();
+        setOrders(data);
+      } catch (err) {
+        setError(err.message || 'Could not fetch orders');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrders();
   }, []);
 
-  return (
-    <View style={styles.container}>
-      {/* Gradient Header */}
-      <LinearGradient
-        colors={['#361696', '#7A5FFF']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.header}
-      >
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Order History</Text>
-      </LinearGradient>
+  if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color="#361696" />;
+  if (error) return <View style={styles.center}><Text style={{ color: 'red' }}>{error}</Text></View>;
+  if (!orders.length) return <View style={styles.center}><Text>No orders found.</Text></View>;
 
-      {/* Main content */}
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {orders.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Image
-              source={require('../assets/images/empty-cart.png')}
-              style={styles.emptyImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.emptyText}>No orders yet</Text>
-            <Text style={styles.subText}>Your orders will appear here once placed.</Text>
-          </View>
-        ) : (
-          orders.map((order, index) => (
-            <View key={index} style={styles.card}>
-              <View style={styles.row}>
-                <Text style={styles.orderTitle}>Order #{order.id}</Text>
-                <Text style={styles.orderDate}>{order.date}</Text>
-              </View>
-              <Text style={styles.orderAmount}>₵{order.total}</Text>
-              <Text style={styles.orderStatus}>Status: {order.status}</Text>
-            </View>
-          ))
-        )}
-      </ScrollView>
-    </View>
+  return (
+    <FlatList
+      data={orders}
+      keyExtractor={item => item.id?.toString() || Math.random().toString()}
+      renderItem={({ item }) => (
+        <View style={styles.orderItem}>
+          <Text style={styles.orderTitle}>{item.title || 'Order'}</Text>
+          <Text style={styles.orderDate}>{item.date}</Text>
+          <Text style={styles.orderStatus}>{item.status}</Text>
+        </View>
+      )}
+      contentContainerStyle={{ padding: 16 }}
+    />
   );
-};
+}
 
 const STATUS_BAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 44;
 
@@ -158,6 +143,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#444',
   },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  orderItem: { backgroundColor: '#fff', borderRadius: 10, padding: 16, marginBottom: 12, elevation: 2 },
+  orderTitle: { fontWeight: 'bold', fontSize: 16, marginBottom: 4 },
+  orderDate: { color: '#666', marginBottom: 2 },
+  orderStatus: { color: '#361696', fontWeight: '600' },
 });
-
-export default OrderHistoryScreen;

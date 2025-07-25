@@ -1,60 +1,64 @@
-import { Link, useRouter } from "expo-router";
-import { useState } from "react";
-import {
-  Alert,
-  Image,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  Platform,
-} from "react-native";
+import { Link, router } from 'expo-router';
+import React, { useState } from 'react';
+import { Alert, Platform, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function SignUpScreen() {
-  const [email, setEmail] = useState("");
-  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const validateEmail = (email) => {
-    return /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email.trim());
-  };
-
-  const handleContinue = () => {
-    if (!email.trim() || !validateEmail(email)) {
-      Alert.alert("Validation Error", "Please enter a valid email address.");
+  const handleSignUp = async () => {
+    if (!email || !password) {
+      Alert.alert('Missing Info', 'Please fill in all fields.');
       return;
     }
-
-    router.replace("./UserInfo");
+    setLoading(true);
+    try {
+      const response = await fetch('https://your-backend.com/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Sign up failed');
+      }
+      Alert.alert('Success', 'Account created!');
+      router.replace('./(tabs)/Home');
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Could not connect to backend.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <View style={styles.container}>
-      {/* Status bar overlay */}
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
-
-      <Text style={styles.text}>Create an account</Text>
-      <Image source={require('../assets/images/signUpImage.png')} style={styles.girl} />
-      <Text>Enter your email to sign up for this app</Text>
-
+      <Text style={styles.title}>Sign Up</Text>
       <TextInput
+        placeholder="Email"
         style={styles.input}
-        placeholder="Enter your email"
         value={email}
         onChangeText={setEmail}
-        keyboardType="email-address"
+        placeholderTextColor="#888"
         autoCapitalize="none"
       />
-
-      <TouchableOpacity style={styles.button} onPress={handleContinue}>
-        <Text style={styles.buttonText}>Continue</Text>
+      <TextInput
+        placeholder="Password"
+        style={styles.input}
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+        placeholderTextColor="#888"
+      />
+      <TouchableOpacity style={styles.signUpBtn} onPress={handleSignUp} disabled={loading}>
+        <Text style={styles.signUpText}>{loading ? 'Signing up...' : 'Sign Up'}</Text>
       </TouchableOpacity>
-
-      <Text style={{ marginTop: 50 }}>
-        Already have an account?{" "}
-        <Link href="./Login" style={{ color: 'blue', textDecorationLine: 'underline' }}>
-          Log in
+      <Text style={{ marginTop: 16 }}>
+        Already have an account?{' '}
+        <Link href="/Login" style={{ color: 'blue' }}>
+          Login
         </Link>
       </Text>
     </View>
@@ -103,6 +107,26 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#333',
+  },
+  signUpBtn: {
+    backgroundColor: '#361696',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 28,
+    alignItems: 'center',
+    width: '80%',
+    marginTop: 20,
+  },
+  signUpText: {
+    color: 'white',
+    fontSize: 18,
     fontWeight: 'bold',
   },
 });

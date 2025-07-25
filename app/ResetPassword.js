@@ -1,86 +1,75 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from 'react-native';
-//import Layout from '../components/Layout';
+import { Link, router } from 'expo-router';
+import React, { useState } from 'react';
+import { Alert, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-const ResetPasswordScreen = ({ route, navigation }) => {
-  const [username, setUsername] = useState('');
-  const [token, setToken] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-
-  useEffect(() => {
-    if (route.params) {
-      setUsername(route.params.username || '');
-      setToken(route.params.token || '');
-    }
-  }, [route.params]);
+export default function ResetPasswordScreen() {
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleResetPassword = async () => {
-    if (!username || !token || !newPassword) {
-      Alert.alert('Error', 'Please fill in all fields.');
+    if (!password || !confirmPassword) {
+      Alert.alert('Missing Info', 'Please fill in all fields.');
       return;
     }
-
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match.');
+      return;
+    }
+    setLoading(true);
     try {
-      const response = await fetch('https://your-backend.com/reset-password', {
+      // Assume token is passed via navigation params or similar
+      const token = '';
+      const response = await fetch('https://your-backend.com/api/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, token, newPassword }),
+        body: JSON.stringify({ password, token }),
       });
-
-      const text = await response.text();
-
-      if (text.includes('successful')) {
-        Alert.alert('Success', 'Your password has been reset.', [
-          { text: 'OK', onPress: () => navigation.replace('SignIn') },
-        ]);
-      } else {
-        Alert.alert('Error', text);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to reset password');
       }
+      Alert.alert('Success', 'Password reset!');
+      router.replace('/Login');
     } catch (error) {
-      Alert.alert('Error', 'Something went wrong.');
-      console.error(error);
+      Alert.alert('Error', error.message || 'Could not connect to backend.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Layout noScroll>
-      <Text style={styles.title}>Reset Your Password</Text>
-
-      <TextInput
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Reset Token"
-        value={token}
-        onChangeText={setToken}
-        style={styles.input}
-      />
+    <View style={styles.container}>
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+      <Text style={styles.title}>Reset Password</Text>
       <TextInput
         placeholder="New Password"
-        secureTextEntry
-        value={newPassword}
-        onChangeText={setNewPassword}
         style={styles.input}
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+        placeholderTextColor="#888"
       />
-
-      <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
-        <Text style={styles.buttonText}>Reset Password</Text>
+      <TextInput
+        placeholder="Confirm Password"
+        style={styles.input}
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        secureTextEntry
+        placeholderTextColor="#888"
+      />
+      <TouchableOpacity style={styles.resetBtn} onPress={handleResetPassword} disabled={loading}>
+        <Text style={styles.resetText}>{loading ? 'Resetting...' : 'Reset Password'}</Text>
       </TouchableOpacity>
-    </Layout>
+      <Text style={{ marginTop: 16 }}>
+        Remembered your password?{' '}
+        <Link href="/Login" style={{ color: 'blue' }}>
+          Login
+        </Link>
+      </Text>
+    </View>
   );
-};
-
-export default ResetPasswordScreen;
+}
 
 const styles = StyleSheet.create({
   title: {

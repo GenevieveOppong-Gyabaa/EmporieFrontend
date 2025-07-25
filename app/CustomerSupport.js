@@ -4,17 +4,15 @@ import {
   Ionicons,
   MaterialIcons,
 } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
-  Animated,
-  ScrollView,
+  ActivityIndicator,
+  FlatList,
   StyleSheet,
   Text,
-  TouchableWithoutFeedback,
-  View,
+  View
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const router = useRouter();
 
@@ -49,68 +47,47 @@ const supportItems = [
   },
 ];
 
-const HelpSupportScreen = () => {
-  const navigation = useNavigation();
+export default function CustomerSupportScreen() {
+  const [faqs, setFaqs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchFaqs = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch('https://your-backend.com/api/faqs');
+        if (!response.ok) throw new Error('Failed to fetch FAQs');
+        const data = await response.json();
+        setFaqs(data);
+      } catch (err) {
+        setError(err.message || 'Could not fetch FAQs');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFaqs();
+  }, []);
+
+  if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color="#361696" />;
+  if (error) return <View style={styles.center}><Text style={{ color: 'red' }}>{error}</Text></View>;
+  if (!faqs.length) return <View style={styles.center}><Text>No FAQs found.</Text></View>;
 
   return (
-    <View style={styles.container}>
-      {/* Gradient Header */}
-      <LinearGradient
-        colors={['#361696', '#6C48FF']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.header}
-      >
-        <Text style={styles.headerTitle}>Help & Support</Text>
-      </LinearGradient>
-
-      {/* Support Options */}
-      <ScrollView contentContainerStyle={styles.supportSection}>
-        {supportItems.map((item, index) => {
-          const scaleAnim = new Animated.Value(1);
-
-          const handlePressIn = () => {
-            Animated.spring(scaleAnim, {
-              toValue: 0.95,
-              useNativeDriver: true,
-            }).start();
-          };
-
-          const handlePressOut = () => {
-            Animated.spring(scaleAnim, {
-              toValue: 1,
-              useNativeDriver: true,
-            }).start();
-          };
-
-          return (
-            <TouchableWithoutFeedback
-              key={index}
-              onPress={item.onPress}
-              onPressIn={handlePressIn}
-              onPressOut={handlePressOut}
-            >
-              <Animated.View style={[styles.card, { transform: [{ scale: scaleAnim }] }]}>
-                <LinearGradient
-                  colors={item.gradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.iconWrap}
-                >
-                  {item.icon('#fff')}
-                </LinearGradient>
-                <View>
-                  <Text style={styles.cardTitle}>{item.title}</Text>
-                  <Text style={styles.cardDescription}>{item.description}</Text>
-                </View>
-              </Animated.View>
-            </TouchableWithoutFeedback>
-          );
-        })}
-      </ScrollView>
-    </View>
+    <FlatList
+      data={faqs}
+      keyExtractor={item => item.id?.toString() || Math.random().toString()}
+      renderItem={({ item }) => (
+        <View style={styles.faqItem}>
+          <Text style={styles.faqQuestion}>{item.question}</Text>
+          <Text style={styles.faqAnswer}>{item.answer}</Text>
+        </View>
+      )}
+      contentContainerStyle={{ padding: 16 }}
+    />
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -165,6 +142,8 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 4,
   },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  faqItem: { backgroundColor: '#fff', borderRadius: 10, padding: 16, marginBottom: 12, elevation: 2 },
+  faqQuestion: { fontWeight: 'bold', fontSize: 16, marginBottom: 4 },
+  faqAnswer: { color: '#666', fontSize: 14 },
 });
-
-export default HelpSupportScreen;

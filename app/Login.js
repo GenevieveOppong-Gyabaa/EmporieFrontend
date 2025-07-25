@@ -1,55 +1,52 @@
+import { useFonts } from 'expo-font';
+import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Image,
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { useFonts } from 'expo-font';
-import { Poppins_700Bold } from '@expo-google-fonts/poppins';
 
 
-const Login = () => {
-  const [username, setUsername] = useState('');
+export default function LoginScreen() {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState({ username: '', password: '' });
+  const [loading, setLoading] = useState(false);
 
   const [fontsLoaded] = useFonts({
     PoppinsBold: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
   const handleLogin = async () => {
-    let usernameError = '';
-    let passwordError = '';
-
-    if (!username) usernameError = 'Username is required.';
-    if (!password) passwordError = 'Password is required.';
-
-    setErrors({ username: usernameError, password: passwordError });
-    if (usernameError || passwordError) return;
-
+    if (!email || !password) {
+      Alert.alert('Missing Info', 'Please fill in all fields.');
+      return;
+    }
+    setLoading(true);
     try {
-      const response = await fetch('http://your-backend-url.com/api/auth/login', {
+      const response = await fetch('https://your-backend.com/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       });
-
       if (!response.ok) {
-        const error = await response.json();
-        Alert.alert('Login Failed', error.message || 'Invalid credentials.');
-        return;
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Login failed');
       }
-
-      const data = await response.json();
-      Alert.alert('Login Successful', `Welcome ${data.username}!`);
+      // Optionally save token here
+      Alert.alert('Success', 'Logged in successfully!');
+      router.replace('./(tabs)/Home');
     } catch (error) {
-      Alert.alert('Network Error', 'Please try again later.');
+      Alert.alert('Error', error.message || 'Could not connect to backend.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -57,6 +54,7 @@ const Login = () => {
 
   return (
     <View style={styles.container}>
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       {/* Watermark image */}
       <Image
         source={require('../assets/images/Emporie-logo.png')} // Replace with your logo
@@ -74,14 +72,10 @@ const Login = () => {
           <Text style={styles.text}>Username</Text>
           <TextInput
             style={styles.textInput}
-            value={username}
-            onChangeText={(text) => {
-              setUsername(text);
-              if (text) setErrors((prev) => ({ ...prev, username: '' }));
-            }}
+            value={email}
+            onChangeText={setEmail}
             autoCapitalize="none"
           />
-          {errors.username ? <Text style={styles.helperText}>{errors.username}</Text> : null}
         </View>
 
         <View style={[styles.inputContainer, { marginTop: 24 }]}>
@@ -90,23 +84,28 @@ const Login = () => {
             style={styles.textInput}
             secureTextEntry
             value={password}
-            onChangeText={(text) => {
-              setPassword(text);
-              if (text) setErrors((prev) => ({ ...prev, password: '' }));
-            }}
+            onChangeText={setPassword}
           />
-          {errors.password ? <Text style={styles.helperText}>{errors.password}</Text> : null}
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Login</Text>
+        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+          <Text style={styles.buttonText}>{loading ? 'Logging in...' : 'Login'}</Text>
         </TouchableOpacity>
+        <Text style={{ marginTop: 16 }}>
+          Don't have an account?{' '}
+          <Link href="/SignUp" style={{ color: 'blue' }}>
+            Sign Up
+          </Link>
+        </Text>
+        <Text style={{ marginTop: 8 }}>
+          <Link href="/ForgotPassword" style={{ color: 'blue' }}>
+            Forgot Password?
+          </Link>
+        </Text>
       </KeyboardAvoidingView>
     </View>
   );
-};
-
-export default Login;
+}
 
 const styles = StyleSheet.create({
   container: {

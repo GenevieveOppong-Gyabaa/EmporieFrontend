@@ -1,5 +1,7 @@
-import type { Deal } from "@/data/deals"
-import { useState } from "react"
+import type { Deal } from "@/data/deals";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useState } from "react";
+import { fetchCart, updateCart } from '../services/cartService';
 
 export interface CartItem {
   id: string // unique cart item id
@@ -19,34 +21,55 @@ export interface CartContextType {
   clearCart: () => void
   getCartTotal: () => number
   getCartItemsCount: () => number
+  loadCart: (userId?: string) => Promise<void>
 }
 
-// Simple cart state management (you could use Context API or Redux for more complex apps)
 let cartState: CartItem[] = []
 let cartListeners: (() => void)[] = []
 
-export const useCart = (): CartContextType => {
+const CART_STORAGE_KEY = 'emporie_cart';
+
+export const useCart = (userId?: string): CartContextType => {
   const [, forceUpdate] = useState({})
 
-  const triggerUpdate = () => {
+  const triggerUpdate = async () => {
     forceUpdate({})
     cartListeners.forEach(listener => listener())
+    // Save to AsyncStorage
+    await AsyncStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartState));
+    // Sync to backend if userId is present
+    if (userId) {
+      await updateCart(userId, cartState);
+    }
+  }
+
+  const loadCart = async (userId?: string) => {
+    if (userId) {
+      // Try to fetch from backend
+      const backendCart = await fetchCart(userId);
+      if (backendCart && backendCart.length > 0) {
+        cartState = backendCart;
+        await AsyncStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartState));
+        triggerUpdate();
+        return;
+      }
+    }
+    // Fallback to AsyncStorage
+    const localCart = await AsyncStorage.getItem(CART_STORAGE_KEY);
+    cartState = localCart ? JSON.parse(localCart) : [];
+    triggerUpdate();
   }
 
   const addToCart = (deal: Deal, quantity: number, selectedColor?: string, selectedSize?: string) => {
-    // Check if item with same deal, color, and size already exists
     const existingItemIndex = cartState.findIndex(
       item => 
         item.dealId === deal.id && 
         item.selectedColor === selectedColor && 
         item.selectedSize === selectedSize
     )
-
     if (existingItemIndex >= 0) {
-      // Update quantity of existing item
       cartState[existingItemIndex].quantity += quantity
     } else {
-      // Add new item
       const newItem: CartItem = {
         id: `${deal.id}-${selectedColor || 'default'}-${selectedSize || 'default'}-${Date.now()}`,
         dealId: deal.id,
@@ -58,7 +81,6 @@ export const useCart = (): CartContextType => {
       }
       cartState.push(newItem)
     }
-    
     triggerUpdate()
   }
 
@@ -72,7 +94,6 @@ export const useCart = (): CartContextType => {
       removeFromCart(cartItemId)
       return
     }
-
     const itemIndex = cartState.findIndex(item => item.id === cartItemId)
     if (itemIndex >= 0) {
       cartState[itemIndex].quantity = quantity
@@ -96,6 +117,11 @@ export const useCart = (): CartContextType => {
     return cartState.reduce((count, item) => count + item.quantity, 0)
   }
 
+  useEffect(() => {
+    loadCart(userId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
   return {
     cartItems: cartState,
     addToCart,
@@ -104,5 +130,6 @@ export const useCart = (): CartContextType => {
     clearCart,
     getCartTotal,
     getCartItemsCount,
+    loadCart,
   }
 }

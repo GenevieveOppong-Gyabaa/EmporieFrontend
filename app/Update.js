@@ -1,20 +1,23 @@
-import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-  StatusBar,
-  Platform,
-  Dimensions,
+    Dimensions,
+    Image,
+    Platform,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { useEffect } from 'react';
 
 const UpdatesScreen = () => {
   const navigation = useNavigation();
+  const [updates, setUpdates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     StatusBar.setBarStyle('light-content');
@@ -22,6 +25,22 @@ const UpdatesScreen = () => {
       StatusBar.setTranslucent(true);
       StatusBar.setBackgroundColor('transparent');
     }
+    // Fetch updates from backend
+    const fetchUpdates = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch('https://your-backend.com/api/updates');
+        if (!response.ok) throw new Error('Failed to fetch updates');
+        const data = await response.json();
+        setUpdates(data);
+      } catch (err) {
+        setError(err.message || 'Could not fetch updates');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUpdates();
   }, []);
 
   return (
@@ -39,15 +58,32 @@ const UpdatesScreen = () => {
         <Text style={styles.headerTitle}>Updates</Text>
       </LinearGradient>
 
-      {/* Empty State */}
+      {/* Content */}
       <View style={styles.content}>
-        <Image
-          source={require('../assets/images/no-update.png')}
-          style={styles.image}
-          resizeMode="contain"
-        />
-        <Text style={styles.title}>Oops! No updates yet</Text>
-        <Text style={styles.subText}>We'll notify you when something new comes up.</Text>
+        {loading ? (
+          <Text>Loading updates...</Text>
+        ) : error ? (
+          <Text style={{ color: 'red' }}>{error}</Text>
+        ) : updates.length === 0 ? (
+          <Image
+            source={require('../assets/images/no-update.png')}
+            style={styles.image}
+            resizeMode="contain"
+          />
+        ) : (
+          updates.map((update, idx) => (
+            <View key={idx} style={{ marginBottom: 24, alignItems: 'center' }}>
+              <Text style={styles.title}>{update.title}</Text>
+              <Text style={styles.subText}>{update.description}</Text>
+            </View>
+          ))
+        )}
+        {(!loading && !error && updates.length === 0) && (
+          <>
+            <Text style={styles.title}>Oops! No updates yet</Text>
+            <Text style={styles.subText}>We'll notify you when something new comes up.</Text>
+          </>
+        )}
       </View>
     </View>
   );

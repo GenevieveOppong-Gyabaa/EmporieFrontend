@@ -1,18 +1,21 @@
+import { FontAwesome } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  ActivityIndicator,
-  SafeAreaView,
-  Animated,
-  Platform,
-  StatusBar,
-  Dimensions,
+    ActivityIndicator,
+    Alert,
+    Animated,
+    Dimensions,
+    FlatList,
+    Platform,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { FontAwesome } from '@expo/vector-icons';
 
 const STATUS_BAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 44;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -49,24 +52,48 @@ const fetchReviewsFromBackend = async () => {
 export default function ReviewsScreen() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [newReview, setNewReview] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const fadeAnim = new Animated.Value(0); // For screen fade-in animation
 
   useEffect(() => {
-    // 🟢 Fetch reviews from backend when screen loads
-    const getReviews = async () => {
-      const data = await fetchReviewsFromBackend();
-      setReviews(data);
-      setLoading(false);
-      // Animate screen content on load
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }).start();
+    const fetchReviews = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch('https://your-backend.com/api/reviews');
+        if (!response.ok) throw new Error('Failed to fetch reviews');
+        const data = await response.json();
+        setReviews(data);
+      } catch (err) {
+        setError(err.message || 'Could not fetch reviews');
+      } finally {
+        setLoading(false);
+      }
     };
-
-    getReviews();
+    fetchReviews();
   }, []);
+
+  const handleSubmit = async () => {
+    if (!newReview) return;
+    setSubmitting(true);
+    try {
+      const response = await fetch('https://your-backend.com/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: newReview }),
+      });
+      if (!response.ok) throw new Error('Failed to submit review');
+      const review = await response.json();
+      setReviews([review, ...reviews]);
+      setNewReview('');
+    } catch (err) {
+      Alert.alert('Error', err.message || 'Could not submit review');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   // 🔸 Generate star rating UI
   const renderStars = (count) => {
@@ -112,6 +139,9 @@ export default function ReviewsScreen() {
     </Animated.View>
   );
 
+  if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color="#361696" />;
+  if (error) return <View style={styles.center}><Text style={{ color: 'red' }}>{error}</Text></View>;
+
   return (
     <SafeAreaView style={styles.container}>
       {/* 🟣 Gradient Header */}
@@ -138,6 +168,17 @@ export default function ReviewsScreen() {
           contentContainerStyle={styles.list}
         />
       )}
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          value={newReview}
+          onChangeText={setNewReview}
+          placeholder="Write a review..."
+        />
+        <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={submitting}>
+          <Text style={styles.submitText}>{submitting ? 'Posting...' : 'Post'}</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -222,4 +263,12 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 20,
   },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  reviewItem: { backgroundColor: '#fff', borderRadius: 10, padding: 16, marginBottom: 12, elevation: 2 },
+  reviewText: { fontSize: 16, marginBottom: 4 },
+  reviewDate: { color: '#666', fontSize: 12 },
+  inputContainer: { flexDirection: 'row', padding: 16, borderTopWidth: 1, borderColor: '#eee', backgroundColor: '#fafafa' },
+  input: { flex: 1, backgroundColor: '#fff', borderRadius: 8, padding: 10, borderWidth: 1, borderColor: '#ddd', marginRight: 8 },
+  submitBtn: { backgroundColor: '#361696', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center' },
+  submitText: { color: '#fff', fontWeight: 'bold' },
 });

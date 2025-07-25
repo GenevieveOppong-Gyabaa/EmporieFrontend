@@ -1,79 +1,62 @@
 import { useNavigation } from '@react-navigation/native';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  Platform,
-  StatusBar,
-  Dimensions,
+    ActivityIndicator,
+    Dimensions,
+    FlatList,
+    Platform,
+    StatusBar,
+    StyleSheet,
+    Text,
+    View
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const STATUS_BAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 44;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const PurchasesScreen = () => {
+export default function PurchasesScreen() {
   const navigation = useNavigation();
   const [purchases, setPurchases] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Status bar config
-    StatusBar.setBarStyle('light-content');
-    if (Platform.OS === 'android') {
-      StatusBar.setTranslucent(true);
-      StatusBar.setBackgroundColor('transparent');
-    }
-
-    // Backend fetch example
-    // fetch('https://yourapi.com/user/purchases')
-    //   .then(res => res.json())
-    //   .then(data => setPurchases(data))
-    //   .catch(err => console.error(err));
+    const fetchPurchases = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch('https://your-backend.com/api/purchases');
+        if (!response.ok) throw new Error('Failed to fetch purchases');
+        const data = await response.json();
+        setPurchases(data);
+      } catch (err) {
+        setError(err.message || 'Could not fetch purchases');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPurchases();
   }, []);
 
-  return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={['#361696', '#9C4DCC', '#DABEFF']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.header}
-      >
-        <Text style={styles.headerTitle}>My Purchases</Text>
-      </LinearGradient>
+  if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color="#361696" />;
+  if (error) return <View style={styles.center}><Text style={{ color: 'red' }}>{error}</Text></View>;
+  if (!purchases.length) return <View style={styles.center}><Text>No purchases found.</Text></View>;
 
-      <ScrollView contentContainerStyle={styles.content}>
-        {purchases.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Image
-              source={require('../assets/images/empty-bag.png')}
-              style={styles.image}
-              resizeMode="contain"
-            />
-            <Text style={styles.title}>No purchases yet</Text>
-            <Text style={styles.subText}>
-              Your recent purchases will show up here once you start shopping.
-            </Text>
-          </View>
-        ) : (
-          purchases.map((item, index) => (
-            <View key={index} style={styles.card}>
-              <Image source={{ uri: item.imageUrl }} style={styles.itemImage} />
-              <View style={styles.itemDetails}>
-                <Text style={styles.itemTitle}>{item.title}</Text>
-                <Text style={styles.itemPrice}>GHS {item.price}</Text>
-                <Text style={styles.itemDate}>{item.date}</Text>
-              </View>
-            </View>
-          ))
-        )}
-      </ScrollView>
-    </View>
+  return (
+    <FlatList
+      data={purchases}
+      keyExtractor={item => item.id?.toString() || Math.random().toString()}
+      renderItem={({ item }) => (
+        <View style={styles.purchaseItem}>
+          <Text style={styles.purchaseTitle}>{item.title || 'Purchase'}</Text>
+          <Text style={styles.purchaseDate}>{item.date}</Text>
+          <Text style={styles.purchaseAmount}>{item.amount}</Text>
+        </View>
+      )}
+      contentContainerStyle={{ padding: 16 }}
+    />
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -160,6 +143,9 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 2,
   },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  purchaseItem: { backgroundColor: '#fff', borderRadius: 10, padding: 16, marginBottom: 12, elevation: 2 },
+  purchaseTitle: { fontWeight: 'bold', fontSize: 16, marginBottom: 4 },
+  purchaseDate: { color: '#666', marginBottom: 2 },
+  purchaseAmount: { color: '#361696', fontWeight: '600' },
 });
-
-export default PurchasesScreen;
