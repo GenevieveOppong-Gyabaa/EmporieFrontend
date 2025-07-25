@@ -92,16 +92,16 @@ const SellProductScreen = ({ navigation }) => {
     }
     setLoading(true);
     try {
-      // For demo, use numeric IDs
-      const userId = 1; // Replace with real user ID
-      const categoryId = 1; // Replace with real category ID
+      // For demo, use numeric userId and categoryId
+      const userId = 1; // Replace with real user ID if available
+      const categoryId = 2; // Replace with real category ID if available
       const payload = {
         name: form.title,
         description: form.description,
         userId,
         categoryId,
         imageUrls: [],
-        tags: [], // Add tags if you have them, otherwise leave empty
+        tags: [], // Add tags if you have them, otherwise empty array
       };
       // Step 1: Create product (no image)
       const createRes = await fetch('http://your-backend.com/products', {
@@ -228,7 +228,7 @@ const SellProductScreen = ({ navigation }) => {
           <Text style={styles.emptyText}>Add Image</Text>
           {form.image ? (
             <View style={styles.imageWrapper}>
-              <Image source={{ uri: form.images }} style={styles.image} />
+              <Image source={{ uri: form.image }} style={styles.image} />
               <TouchableOpacity onPress={() => removeImage('image')}>
                 <Text style={styles.removeText}>Remove</Text>
               </TouchableOpacity>
