@@ -1,5 +1,5 @@
 import { Link, router } from 'expo-router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Alert, Platform, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function SignUpScreen() {
@@ -14,7 +14,7 @@ export default function SignUpScreen() {
     }
     setLoading(true);
     try {
-      const response = await fetch('https://your-backend.com/api/signup', {
+      const response = await fetch('http://your-backend.com/user/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

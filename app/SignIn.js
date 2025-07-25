@@ -1,46 +1,56 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
-  View,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
+  View,
 } from 'react-native';
 //import Layout from '../components/Layout'; 
+import { router } from 'expo-router';
 
-
-export default function SignInScreen({ navigation }) {
+export default function SignInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
     if (!email || !password) {
       alert('Please fill in both fields');
       return;
     }
-
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        console.log('Signed in:', userCredential.user);
-        navigation.replace('Home');
-      })
-      .catch((error) => {
-        console.log('Login error:', error);
-        alert('Invalid email or password');
+    setLoading(true);
+    try {
+      const response = await fetch('http://your-backend.com/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Login failed');
+      }
+      // Optionally save token here
+      alert('Logged in successfully!');
+      router.replace('./(tabs)/Home');
+    } catch (error) {
+      alert(error.message || 'Could not connect to backend.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleNavigation = (screen) => {
-    navigation.navigate(screen);
+    router.replace(`/${screen}`);
   };
 
   return (
-    <Layout noScroll hideBottomNav>
+    <View style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
+        style={{ flex: 1, justifyContent: 'center' }}
       >
         <Text style={styles.title}>Sign in to shop your favorite items</Text>
 
@@ -68,8 +78,8 @@ export default function SignInScreen({ navigation }) {
           <Text style={styles.forgot}>Forgot password?</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={handleSignIn}>
-          <Text style={styles.buttonText}>Sign In</Text>
+        <TouchableOpacity style={styles.button} onPress={handleSignIn} disabled={loading}>
+          <Text style={styles.buttonText}>{loading ? 'Signing in...' : 'Sign In'}</Text>
         </TouchableOpacity>
 
         <View style={styles.bottomRow}>
@@ -79,7 +89,7 @@ export default function SignInScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </Layout>
+    </View>
   );
 }
 
@@ -143,3 +153,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+git 

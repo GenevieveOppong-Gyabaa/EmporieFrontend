@@ -2,7 +2,7 @@ import { Deal, dealsData } from '../data/deals';
 
 export async function getDeals(): Promise<Deal[]> {
   try {
-    const response = await fetch('https://your-backend.com/api/deals');
+    const response = await fetch('http://your-backend.com/api/deals');
     if (!response.ok) throw new Error('Network response was not ok');
     const data = await response.json();
     // Optionally validate/transform data here

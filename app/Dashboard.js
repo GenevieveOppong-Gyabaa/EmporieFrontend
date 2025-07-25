@@ -21,8 +21,8 @@ const SellerDashboardScreen = ({ route }) => {
  const fetchDashboardData = async () => {
   try {
     const [dashRes, prodRes] = await Promise.all([
-      fetch(`https://your-api.com/api/seller/${userId}/dashboard`),
-      fetch(`https://your-api.com/api/seller/${userId}/products`)
+      fetch(`http://your-api.com/api/seller/${userId}/dashboard`),
+      fetch(`http://your-api.com/api/seller/${userId}/products`)
     ]);
 
     // Check if responses are OK before parsing

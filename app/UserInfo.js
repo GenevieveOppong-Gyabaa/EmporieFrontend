@@ -24,7 +24,7 @@ export default function UserInfoScreen() {
     }
     setLoading(true);
     try {
-      const response = await fetch('https://your-backend.com/api/userinfo', {
+      const response = await fetch('http://your-backend.com/api/userinfo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ firstName, lastName, password }),

@@ -48,7 +48,7 @@ export default function EditInfoScreen() {
 
     try {
       setLoading(true);
-      const response = await fetch('https://your-backend-api.com/api/user/update', {
+      const response = await fetch('http://your-backend-api.com/api/user/update', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

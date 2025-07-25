@@ -13,7 +13,7 @@ export default function ChatScreen() {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch('https://your-backend.com/api/chat');
+        const response = await fetch('http://your-backend.com/api/chat');
         if (!response.ok) throw new Error('Failed to fetch messages');
         const data = await response.json();
         setMessages(data);
@@ -30,7 +30,7 @@ export default function ChatScreen() {
     if (!newMessage) return;
     setSending(true);
     try {
-      const response = await fetch('https://your-backend.com/api/chat', {
+      const response = await fetch('http://your-backend.com/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: newMessage }),

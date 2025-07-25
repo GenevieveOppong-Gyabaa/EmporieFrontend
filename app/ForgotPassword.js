@@ -21,7 +21,7 @@ export default function ForgotPasswordScreen() {
     }
     setLoading(true);
     try {
-      const response = await fetch('https://your-backend.com/api/forgot-password', {
+      const response = await fetch('http://your-backend.com/api/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

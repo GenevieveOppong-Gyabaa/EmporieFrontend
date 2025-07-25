@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useEffect, useState } from 'react';
 import {
-  View,
+  Alert,
+  Dimensions,
+  Image,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Image,
-  Alert,
-  Platform,
-  StatusBar,
-  Dimensions,
+  View
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import * as ImagePicker from 'expo-image-picker';
 import RNPickerSelect from 'react-native-picker-select';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -48,6 +48,7 @@ const SellProductScreen = ({ navigation }) => {
 
   const [errors, setErrors] = useState({});
   const [submittedItems, setSubmittedItems] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     StatusBar.setBarStyle('light-content');
@@ -84,31 +85,75 @@ const SellProductScreen = ({ navigation }) => {
     setForm({ ...form, [field]: null });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) {
       Alert.alert('Validation Error', 'Please fill all required fields.');
       return;
     }
-
-    const newItem = { ...form };
-    const updatedItems = [...submittedItems, newItem];
-    setSubmittedItems(updatedItems);
-
-    navigation.navigate('ProductList', { items: updatedItems });
-
-    setForm({
-      category: '',
-      title: '',
-      region: '',
-      description: '',
-      name: '',
-      phone: '',
-      deliveryServices: '',
-      image: null,
-      upload: null,
-    });
-
-    setErrors({});
+    setLoading(true);
+    try {
+      // For demo, use numeric IDs
+      const userId = 1; // Replace with real user ID
+      const categoryId = 1; // Replace with real category ID
+      const payload = {
+        name: form.title,
+        description: form.description,
+        userId,
+        categoryId,
+        imageUrls: [],
+        tags: [], // Add tags if you have them, otherwise leave empty
+      };
+      // Step 1: Create product (no image)
+      const createRes = await fetch('http://your-backend.com/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!createRes.ok) {
+        const errorData = await createRes.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to create product');
+      }
+      const createdProduct = await createRes.json();
+      // Step 2: Upload image if present
+      if (form.image) {
+        const imageData = new FormData();
+        imageData.append('images', {
+          uri: form.image,
+          name: 'product-image.jpg',
+          type: 'image/jpeg',
+        });
+        // Upload to /products/{productId}/upload-images?userId={userId}
+        const uploadRes = await fetch(`http://your-backend.com/products/${createdProduct.id}/upload-images?userId=${userId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          body: imageData,
+        });
+        if (!uploadRes.ok) {
+          const errorData = await uploadRes.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Failed to upload image');
+        }
+      }
+      Alert.alert('Success', 'Product submitted!');
+      setForm({
+        category: '',
+        title: '',
+        region: '',
+        description: '',
+        name: '',
+        phone: '',
+        deliveryServices: '',
+        image: null,
+        upload: null,
+      });
+      setErrors({});
+      navigation.navigate('ProductList');
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Could not connect to backend.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const renderInput = (label, key, keyboardType = 'default') => (
@@ -183,7 +228,7 @@ const SellProductScreen = ({ navigation }) => {
           <Text style={styles.emptyText}>Add Image</Text>
           {form.image ? (
             <View style={styles.imageWrapper}>
-              <Image source={{ uri: form.image }} style={styles.image} />
+              <Image source={{ uri: form.images }} style={styles.image} />
               <TouchableOpacity onPress={() => removeImage('image')}>
                 <Text style={styles.removeText}>Remove</Text>
               </TouchableOpacity>
@@ -224,8 +269,8 @@ const SellProductScreen = ({ navigation }) => {
           )}
 
           {/* Submit */}
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitText}>Submit</Text>
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
+            <Text style={styles.submitText}>{loading ? 'Submitting...' : 'Submit'}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

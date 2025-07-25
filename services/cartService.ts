@@ -1,6 +1,6 @@
 import { CartItem } from '../context/cartContext';
 
-const API_URL = 'https://your-backend.com/api/cart';
+const API_URL = 'http://your-backend.com/api/cart';
 
 export async function fetchCart(userId: string): Promise<CartItem[]> {
   try {

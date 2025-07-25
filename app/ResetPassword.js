@@ -20,7 +20,7 @@ export default function ResetPasswordScreen() {
     try {
       // Assume token is passed via navigation params or similar
       const token = '';
-      const response = await fetch('https://your-backend.com/api/reset-password', {
+      const response = await fetch('http://your-backend.com/api/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password, token }),
