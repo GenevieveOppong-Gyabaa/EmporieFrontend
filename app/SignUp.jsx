@@ -1,6 +1,6 @@
 import { Link, router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Platform, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View, Image } from 'react-native';
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState('');
@@ -36,6 +36,7 @@ export default function SignUpScreen() {
     <View style={styles.container}>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <Text style={styles.title}>Sign Up</Text>
+      <Image source={require('../assets/images/signUpImage.png')} style={styles.girl}/>
       <TextInput
         placeholder="Email"
         style={styles.input}
@@ -113,7 +114,8 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#333',
+    color: '#361696',
+    marginTop: 40,
   },
   signUpBtn: {
     backgroundColor: '#361696',

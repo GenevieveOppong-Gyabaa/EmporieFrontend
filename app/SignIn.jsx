@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-//import Layout from '../components/Layout'; 
 import { router } from 'expo-router';
 
 export default function SignInScreen() {
@@ -153,4 +152,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-git 
+//git 
