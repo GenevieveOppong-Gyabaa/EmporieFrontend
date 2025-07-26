@@ -1,6 +1,7 @@
 import { Link, router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Platform, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View, Image } from 'react-native';
+import { Alert, Image, Platform, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { API_ENDPOINTS } from '../constants/config';
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState('');
@@ -14,7 +15,7 @@ export default function SignUpScreen() {
     }
     setLoading(true);
     try {
-      const response = await fetch('http://your-backend.com/user/register', {
+      const response = await fetch(API_ENDPOINTS.REGISTER, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

@@ -13,6 +13,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { API_ENDPOINTS } from '../constants/config';
 
 
 export default function LoginScreen() {
@@ -31,7 +32,7 @@ export default function LoginScreen() {
     }
     setLoading(true);
     try {
-      const response = await fetch('http://your-backend.com/api/login', {
+      const response = await fetch(API_ENDPOINTS.LOGIN, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
