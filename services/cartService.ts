@@ -15,16 +15,12 @@ export interface Cart {
   items: CartItem[];
   total: number;
 }
-
-// Add item to cart
 export const addToCart = async (item: Omit<CartItem, 'id'>): Promise<CartItem> => {
   try {
     const response = await fetch(`${BACKEND_URL}/cart/add`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // Add Authorization header if user is logged in
-        // 'Authorization': `Bearer ${user.token}`
       },
       body: JSON.stringify(item),
     });
@@ -36,7 +32,6 @@ export const addToCart = async (item: Omit<CartItem, 'id'>): Promise<CartItem> =
     }
   } catch (error) {
     console.log('Backend not available, using local storage:', error);
-    // For now, just return the item with a mock ID
     return { ...item, id: Date.now().toString() };
   }
 };
@@ -46,8 +41,7 @@ export const getCart = async (): Promise<Cart> => {
   try {
     const response = await fetch(`${BACKEND_URL}/cart`, {
       headers: {
-        // Add Authorization header if user is logged in
-        // 'Authorization': `Bearer ${user.token}`
+
       },
     });
 
@@ -58,20 +52,15 @@ export const getCart = async (): Promise<Cart> => {
     }
   } catch (error) {
     console.log('Backend not available, returning empty cart:', error);
-    // Return empty cart as fallback
     return { items: [], total: 0 };
   }
 };
-
-// Update cart item quantity
 export const updateCartItemQuantity = async (itemId: string, quantity: number): Promise<CartItem> => {
   try {
     const response = await fetch(`${BACKEND_URL}/cart/update`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        // Add Authorization header if user is logged in
-        // 'Authorization': `Bearer ${user.token}`
       },
       body: JSON.stringify({ itemId, quantity }),
     });
@@ -86,16 +75,12 @@ export const updateCartItemQuantity = async (itemId: string, quantity: number): 
     throw error;
   }
 };
-
-// Remove item from cart
 export const removeFromCart = async (itemId: string): Promise<void> => {
   try {
     const response = await fetch(`${BACKEND_URL}/cart/remove`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        // Add Authorization header if user is logged in
-        // 'Authorization': `Bearer ${user.token}`
       },
       body: JSON.stringify({ itemId }),
     });
@@ -115,8 +100,6 @@ export const clearCart = async (): Promise<void> => {
     const response = await fetch(`${BACKEND_URL}/cart/clear`, {
       method: 'DELETE',
       headers: {
-        // Add Authorization header if user is logged in
-        // 'Authorization': `Bearer ${user.token}`
       },
     });
 

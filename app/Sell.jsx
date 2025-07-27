@@ -47,14 +47,15 @@ const SellProductScreen = ({ navigation }) => {
     name: '',
     phone: '',
     deliveryServices: '',
-    images: [], // now an array
+    images: [], 
+    price: '',
   });
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [imageError, setImageError] = useState('');
-  // Removed: const [isBecomingSeller, setIsBecomingSeller] = useState(false);
+
 
   const MAX_IMAGES = 3;
   const MAX_IMAGE_SIZE_MB = 2;
@@ -92,6 +93,9 @@ const SellProductScreen = ({ navigation }) => {
     if (!form.description) newErrors.description = 'Description is required';
     if (!form.region) newErrors.region = 'Region is required';
     if (!form.deliveryServices) newErrors.deliveryServices = 'Delivery service is required';
+    if (!form.price || isNaN(form.price) || parseFloat(form.price) <= 0) {
+      newErrors.price = 'Valid price is required';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -109,12 +113,11 @@ const SellProductScreen = ({ navigation }) => {
     });
     if (!result.canceled) {
       const asset = result.assets[0];
-      // Check for duplicate
+
       if (form.images.some(img => img === asset.uri)) {
         setImageError('This image is already added.');
         return;
       }
-      // Check file size (asset.fileSize is not always available, so fetch it if needed)
       let fileSize = asset.fileSize;
       if (fileSize == null && asset.uri.startsWith('file://')) {
         try {
@@ -138,10 +141,7 @@ const SellProductScreen = ({ navigation }) => {
     setImageError('');
   };
 
-  // Removed: Helper to check if user is a seller (assume user.role is available after login/become-seller)
-  // Removed: const isSeller = user && user.role === 'SELLER';
 
-  // Removed: becomeSeller
 
   const handleSubmit = async () => {
     console.log('user context:', user);
@@ -156,16 +156,17 @@ const SellProductScreen = ({ navigation }) => {
     setLoading(true);
     try {
       if (!user || !user.token || !user.id) throw new Error('User not authenticated');
-      // No need to check or become seller, just proceed with product creation
+
       const payload = {
         name: form.title,
         description: form.description,
         userId: user.id,
         categoryId: form.categoryId,
+        price: parseFloat(form.price),
         imageUrls: [],
         tags: [],
       };
-      // Step 1: Create product (no image)
+     // products without images
       const createRes = await fetch(`${BACKEND_URL}/products`, {
         method: 'POST',
         headers: {
@@ -179,7 +180,7 @@ const SellProductScreen = ({ navigation }) => {
         throw new Error(errorData.error || errorData.message || 'Failed to create product');
       }
       const createdProduct = await createRes.json();
-      // Step 2: Upload images if present
+      // products with images
       if (form.images.length > 0) {
         const imageData = new FormData();
         form.images.forEach((img, idx) => {
@@ -253,7 +254,6 @@ const SellProductScreen = ({ navigation }) => {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={{ width: '90%', alignSelf: 'center' }}>
-          {/* Category Picker */}
           <Text style={styles.emptyText}>Category</Text>
           {categoriesLoading ? (
             <Text>Loading categories...</Text>
@@ -268,10 +268,10 @@ const SellProductScreen = ({ navigation }) => {
           )}
           {errors.categoryId && <Text style={styles.errorText}>{errors.categoryId}</Text>}
 
-          {/* Title */}
+    
           {renderInput('Title', 'title')}
 
-          {/* Region Picker */}
+   
           <Text style={styles.emptyText}>Region</Text>
           <RNPickerSelect
             onValueChange={(value) => setForm({ ...form, region: value })}
@@ -281,11 +281,11 @@ const SellProductScreen = ({ navigation }) => {
             style={pickerSelectStyles}
           />
 
-          {/* Name, Phone */}
+          
           {renderInput('Name', 'name')}
           {renderInput('Phone number', 'phone', 'phone-pad')}
+          {renderInput('Price (GHS)', 'price', 'numeric')}
 
-          {/* Delivery Service */}
           <Text style={styles.emptyText}>Delivery Services</Text>
           <RNPickerSelect
             onValueChange={(value) => setForm({ ...form, deliveryServices: value })}
@@ -294,8 +294,6 @@ const SellProductScreen = ({ navigation }) => {
             placeholder={{ label: 'Select Delivery Option', value: null }}
             style={pickerSelectStyles}
           />
-
-          {/* Image Picker */}
           <Text style={styles.emptyText}>Add Images (up to 3, max 2MB each)</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 10 }}>
             {form.images.map((img, idx) => (
@@ -313,8 +311,6 @@ const SellProductScreen = ({ navigation }) => {
             )}
           </View>
           {imageError ? <Text style={{ color: 'red', marginBottom: 8 }}>{imageError}</Text> : null}
-
-          {/* Description */}
           <Text style={styles.emptyText}>Description</Text>
           <TextInput
             style={[styles.input, { height: 100 }, errors.description && { borderColor: 'red' }]}
@@ -328,7 +324,6 @@ const SellProductScreen = ({ navigation }) => {
           />
           {errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
 
-          {/* Submit */}
           <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
             <Text style={styles.submitText}>{loading ? 'Submitting...' : 'Submit'}</Text>
           </TouchableOpacity>

@@ -46,7 +46,7 @@ export default function SignUpScreen() {
   return (
     <View style={styles.container}>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
-      <Text style={styles.title}>Sign Up</Text>
+      <Text style={styles.title}>Create an account</Text>
       <Image source={require('../assets/images/signUpImage.png')} style={styles.girl}/>
       <TextInput
         placeholder="Email"

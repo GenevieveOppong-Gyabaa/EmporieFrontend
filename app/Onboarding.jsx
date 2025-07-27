@@ -47,7 +47,7 @@ export default function OnboardingScreen() {
       flatListRef.current?.scrollToIndex({ index: currentIndex + 1 });
     } else {
       await AsyncStorage.setItem('hasSeenOnboarding', 'true');
-      router.replace('./SignUp');// Navigate to the signup screen
+      router.replace('./SignUp'); 
     }
   };
 
@@ -98,13 +98,20 @@ export default function OnboardingScreen() {
                 >
                   {item.description}
                 </Animatable.Text>
+                {item.id === '1' && (
+                  <TouchableOpacity
+                    onPress={() => router.replace('./SignUp')}
+                    style={styles.skipContainer}
+                  >
+                    <Text style={styles.skipText}>Skip</Text>
+                  </TouchableOpacity>
+                )}
               </LinearGradient>
             </ImageBackground>
           </View>
         )}
       />
 
-      {/* Footer: indicators + button */}
       <View style={styles.footer}>
         <View style={styles.indicatorContainer}>
           {slides.map((_, index) => (
@@ -137,12 +144,12 @@ const styles = StyleSheet.create({
     width,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20, // Side margins
+    paddingHorizontal: 20,
     height,
   },
   slideImage: {
     width: '100%',
-    height: height * 0.66, // 2/3 of the screen
+    height: height * 0.66,
     justifyContent: 'flex-end',
     overflow: 'hidden',
     borderRadius: 20,
@@ -167,6 +174,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 12,
     paddingHorizontal: 10,
+  },
+  skipContainer: {
+    marginTop: 20,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  skipText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
   },
   footer: {
     position: 'absolute',
