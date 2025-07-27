@@ -2,11 +2,13 @@ import { Link, router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Image, Platform, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { API_ENDPOINTS } from '../constants/config';
+import { useUser } from '../context/userContext';
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const { setUser } = useUser();
 
   const handleSignUp = async () => {
     if (!email || !password) {
@@ -22,11 +24,19 @@ export default function SignUpScreen() {
       });
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.log('Registration error response:', errorData);
         throw new Error(errorData.message || 'Sign up failed');
       }
+      const data = await response.json();
+      console.log('Registration backend response:', data);
+      if (!data.id || !data.accessToken) {
+        throw new Error('Registration did not return user id or token');
+      }
+      setUser({ id: data.id, email: data.email, token: data.accessToken });
       Alert.alert('Success', 'Account created!');
       router.replace('./(tabs)/Home');
     } catch (error) {
+      console.error('Registration error:', error);
       Alert.alert('Error', error.message || 'Could not connect to backend.');
     } finally {
       setLoading(false);

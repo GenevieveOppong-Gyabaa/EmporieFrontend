@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  ActivityIndicator,
-  StatusBar,
-  SafeAreaView,
-} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BACKEND_URL } from '../constants/config';
 
 const SellerDashboardScreen = ({ route }) => {
   const userId = route?.params?.userId || 'sample-user-id';
@@ -21,8 +22,8 @@ const SellerDashboardScreen = ({ route }) => {
  const fetchDashboardData = async () => {
   try {
     const [dashRes, prodRes] = await Promise.all([
-      fetch(`http://your-api.com/api/seller/${userId}/dashboard`),
-      fetch(`http://your-api.com/api/seller/${userId}/products`)
+      fetch(`${BACKEND_URL}/api/seller/${userId}/dashboard`),
+      fetch(`${BACKEND_URL}/api/seller/${userId}/products`)
     ]);
 
     // Check if responses are OK before parsing

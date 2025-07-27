@@ -1,14 +1,15 @@
 import { Link, router } from 'expo-router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
-    Alert,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
+import { BACKEND_URL } from '../constants/config';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
@@ -21,7 +22,7 @@ export default function ForgotPasswordScreen() {
     }
     setLoading(true);
     try {
-      const response = await fetch('http://your-backend.com/api/forgot-password', {
+      const response = await fetch(`${BACKEND_URL}/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

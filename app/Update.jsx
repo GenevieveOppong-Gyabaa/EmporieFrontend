@@ -12,6 +12,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { BACKEND_URL } from '../constants/config';
 
 const UpdatesScreen = () => {
   const navigation = useNavigation();
@@ -30,7 +31,7 @@ const UpdatesScreen = () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch('http://your-backend.com/api/updates');
+        const response = await fetch(`${BACKEND_URL}/api/updates`);
         if (!response.ok) throw new Error('Failed to fetch updates');
         const data = await response.json();
         setUpdates(data);

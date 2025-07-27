@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { router } from 'expo-router';
+import { API_ENDPOINTS } from '../constants/config';
 
 export default function SignInScreen() {
   const [email, setEmail] = useState('');
@@ -22,7 +23,7 @@ export default function SignInScreen() {
     }
     setLoading(true);
     try {
-      const response = await fetch('http://your-backend.com/auth/login', {
+      const response = await fetch(API_ENDPOINTS.LOGIN, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

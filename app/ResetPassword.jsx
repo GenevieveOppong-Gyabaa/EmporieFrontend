@@ -1,6 +1,7 @@
 import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { BACKEND_URL } from '../constants/config';
 
 export default function ResetPasswordScreen() {
   const [password, setPassword] = useState('');
@@ -20,7 +21,7 @@ export default function ResetPasswordScreen() {
     try {
       // Assume token is passed via navigation params or similar
       const token = '';
-      const response = await fetch('http://your-backend.com/api/reset-password', {
+      const response = await fetch(`${BACKEND_URL}/api/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password, token }),

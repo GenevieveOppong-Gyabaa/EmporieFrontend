@@ -1,9 +1,10 @@
 const fetch = require('node-fetch');
+const { API_ENDPOINTS } = require('./constants/config');
 
 async function testConnection() {
   try {
     console.log('Testing connection to backend...');
-    const response = await fetch('http://10.132.202.162:8080/user/register', {
+    const response = await fetch(API_ENDPOINTS.REGISTER, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'test@test.com', password: 'test123' }),

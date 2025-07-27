@@ -9,6 +9,7 @@ import {
     Text,
     View
 } from 'react-native';
+import { BACKEND_URL } from '../constants/config';
 
 export default function OrderHistoryScreen() {
   const navigation = useNavigation();
@@ -21,7 +22,7 @@ export default function OrderHistoryScreen() {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch('http://your-backend.com/api/orders');
+        const response = await fetch(`${BACKEND_URL}/api/orders`);
         if (!response.ok) throw new Error('Failed to fetch orders');
         const data = await response.json();
         setOrders(data);

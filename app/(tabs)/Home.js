@@ -1,30 +1,34 @@
 
-import React, { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import {
+  Dimensions,
   FlatList,
   Image,
   Modal,
+  SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  Platform,
-  SafeAreaView,
-  Dimensions,
-  StatusBar
+  View
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 //import { StatusBar } from 'expo-status-bar';
 
 
 /* ─────────────── Local assets ─────────────── */
 //import Bags from '../../assets/images/bags.png';
+import Art from '../../assets/images/Art.png'; //added arts
 import Beauty from '../../assets/images/beauty.png';
+import Books from '../../assets/images/Books.png';
 import Electronics from '../../assets/images/electronics.png';
+import Groceries from '../../assets/images/Groceries.png';
+import Health from '../../assets/images/Health.png';
+import HomeDecor from '../../assets/images/HomeandLiving.png';
 import Item15 from '../../assets/images/Item 16.png';
 import Item16 from '../../assets/images/Item 18.png';
 import Item1 from '../../assets/images/Item1.png';
@@ -43,13 +47,8 @@ import Item8 from '../../assets/images/Item8.png';
 import Item9 from '../../assets/images/Item9.png';
 import MenOfficial from '../../assets/images/MenWear.png';
 import discoverImg from '../../assets/images/partygift.png';
-import Health from '../../assets/images/Health.png';
-import Toys from '../../assets/images/Toys.png';
-import Groceries from '../../assets/images/Groceries.png';
-import Books from '../../assets/images/Books.png';
-import Art from '../../assets/images/Art.png';//added arts
 import Sports from '../../assets/images/Sport.png';
-import HomeDecor from '../../assets/images/HomeandLiving.png';
+import Toys from '../../assets/images/Toys.png';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -68,27 +67,27 @@ const categories = [
 ];
 
 const productData = [
-  { id: 'p1',  img: Item1,  title: "Mixed-beads for male and female",  price: 30.00, rating: 4.3 },
-  { id: 'p1',  img: Item15,  title: "Mixed-beads for male and female",  price: 30.00, rating: 4.3 },
-  { id: 'p1',  img: Item16,  title: "Lil's beads",  price: 20.00, rating: 4.3 },
-  { id: 'p2',  img: Item2,  title: 'Scrunchy',  price: 10.00, rating: 4.7 },
-  { id: 'p3',  img: Item3,  title: "Scrunchy",  price: 10.00, rating: 4.8 },
-  { id: 'p4',  img: Item4,  title: "Peach-colored hair holder",  price: 10.00, rating: 4.2   },
-  { id: 'p5',  img: Item5,  title: 'Trendy hair holder',                price: 10.00, rating: 4.5  },
-  { id: 'p6',  img: Item6,  title: 'Black and white hair band',             price: 15.00, rating: 4.1  },
-  { id: 'p7',  img: Item7,  title: 'Pink-inspired bonnet',              price: 50.00, rating: 4.6 },
-  { id: 'p8',  img: Item8,  title: 'Plain black bonnet',                price: 50.00, rating: 4.0 },
-  { id: 'p9',  img: Item9,  title: 'Trendy hair bonnet',             price: 50.00, rating: 4.4},
-  { id: 'p10', img: Item10, title: 'Beautiful hair bands',              price: 15.00, rating: 4.9  },
-  { id: 'p11', img: Item11, title: 'Hair bonnet',              price: 50.00, rating: 4.3  },
-  { id: 'p12', img: Item12, title: 'Sweet honey',               price: 33.00, rating: 4.2  },
-  { id: 'p13', img: Item13, title: 'Phone case',             price: 30.00, rating: 4.8  },
-  { id: 'p14', img: Item14, title: "Luxurious lady's bag",              price: 500.00, rating: 4.0  },
+  { id: '1',  img: Item1,  title: "Mixed-beads for male and female",  price: 30.00, rating: 4.3 },
+  { id: '2',  img: Item15,  title: "Mixed-beads for male and female",  price: 30.00, rating: 4.3 },
+  { id: '3',  img: Item16,  title: "Lil's beads",  price: 20.00, rating: 4.3 },
+  { id: '4',  img: Item2,  title: 'Scrunchy',  price: 10.00, rating: 4.7 },
+  { id: '5',  img: Item3,  title: "Scrunchy",  price: 10.00, rating: 4.8 },
+  { id: '6',  img: Item4,  title: "Peach-colored hair holder",  price: 10.00, rating: 4.2   },
+  { id: '7',  img: Item5,  title: 'Trendy hair holder',                price: 10.00, rating: 4.5  },
+  { id: '8',  img: Item6,  title: 'Black and white hair band',             price: 15.00, rating: 4.1  },
+  { id: '9',  img: Item7,  title: 'Pink-inspired bonnet',              price: 50.00, rating: 4.6 },
+  { id: '10',  img: Item8,  title: 'Plain black bonnet',                price: 50.00, rating: 4.0 },
+  { id: '11',  img: Item9,  title: 'Trendy hair bonnet',             price: 50.00, rating: 4.4},
+  { id: '12', img: Item10, title: 'Beautiful hair bands',              price: 15.00, rating: 4.9  },
+  { id: '13', img: Item11, title: 'Hair bonnet',              price: 50.00, rating: 4.3  },
+  { id: '14', img: Item12, title: 'Sweet honey',               price: 33.00, rating: 4.2  },
+  { id: '15', img: Item13, title: 'Phone case',             price: 30.00, rating: 4.8  },
+  { id: '16', img: Item14, title: "Luxurious lady's bag",              price: 500.00, rating: 4.0  },
 ];
 
 
 export default function HomeScreen() {
-  const navigation = useNavigation();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -116,12 +115,12 @@ export default function HomeScreen() {
             style={{ flex: 1, fontSize: 15 }}
           />
         </View>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('Favorites')}>
-          <Ionicons name="notifications-outline" size={22} color="#222" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('Profile')}>
-          <Ionicons name="person-circle-outline" size={22} color="#222" />
-        </TouchableOpacity>
+                 <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('Favorites')}>
+           <Ionicons name="notifications-outline" size={22} color="#222" />
+         </TouchableOpacity>
+         <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('Profile')}>
+           <Ionicons name="person-circle-outline" size={22} color="#222" />
+         </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -133,7 +132,7 @@ export default function HomeScreen() {
               You’re just one tap away from something special
             </Text>
             <TouchableOpacity style={styles.discoverBtn}>
-              <Text style={styles.discoverBtnText}>Discover more</Text>
+              <Text style={styles.discoverBtnText}>Discover more items</Text>
             </TouchableOpacity>
           </View>
           <Image source={discoverImg} style={styles.discoverImg} />
@@ -159,14 +158,24 @@ export default function HomeScreen() {
 
         {/* ███ Trending Picks */}
         <Text style={styles.sectionTitle}>Trending Picks</Text>
-        <FlatList
-          data={productData}
-          numColumns={2}
-          columnWrapperStyle={{ justifyContent: 'space-between' }}
-          keyExtractor={(item) => item.id}
-          scrollEnabled={false}
-          renderItem={({ item }) => <ProductCard {...item} />}
-        />
+                 <FlatList
+           data={productData}
+           numColumns={2}
+           columnWrapperStyle={{ justifyContent: 'space-between' }}
+           keyExtractor={(item) => item.id}
+           scrollEnabled={false}
+           renderItem={({ item }) => (
+             <ProductCard 
+               {...item} 
+               onPress={() => {
+                 router.push({
+                   pathname: '../Details',
+                   params: { productId: item.id || '1' }
+                 });
+               }}
+             />
+           )}
+         />
       </ScrollView>
 
       {/* ███ Category modal */}
@@ -194,12 +203,12 @@ export default function HomeScreen() {
       {/*</View>*/}
 
     {/* Floating Grid Icon */}
-    <TouchableOpacity 
-    style={styles.floatingIcon}
-    onPress={() => navigation.navigate("Dashboard")}
-    >
-      <Ionicons name="grid" size={28} color="green" />
-    </TouchableOpacity>
+         <TouchableOpacity 
+     style={styles.floatingIcon}
+     onPress={() => router.push("./Dashboard")}
+     >
+       <Ionicons name="grid" size={28} color="green" />
+     </TouchableOpacity>
    {/*</View>*/}
   </SafeAreaView>
 
@@ -208,11 +217,12 @@ export default function HomeScreen() {
 
 
 /* ─────────────── Product card ─────────────── */
-const ProductCard = ({ img, title, price, rating }) => (
-  <View style={styles.productCard}>
+const ProductCard = ({ id, img, title, price, rating, onPress }) => (
+  <TouchableOpacity 
+    style={styles.productCard}
+    onPress={onPress}
+  >
     <Image source={img} style={styles.productImg} />
-
-   
 
     <Text numberOfLines={1} style={styles.title}>
       {title}
@@ -232,11 +242,8 @@ const ProductCard = ({ img, title, price, rating }) => (
 
     <View style={styles.priceRow}>
       <Text style={styles.price}>GHC{price.toFixed(2)}</Text>
-      
     </View>
-
-   
-  </View>
+  </TouchableOpacity>
 );
 
 

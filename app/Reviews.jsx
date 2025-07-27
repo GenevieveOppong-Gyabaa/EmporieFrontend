@@ -16,6 +16,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { BACKEND_URL } from '../constants/config';
 
 const STATUS_BAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 44;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -62,7 +63,7 @@ export default function ReviewsScreen() {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch('http://your-backend.com/api/reviews');
+        const response = await fetch(`${BACKEND_URL}/api/reviews`);
         if (!response.ok) throw new Error('Failed to fetch reviews');
         const data = await response.json();
         setReviews(data);
@@ -79,7 +80,7 @@ export default function ReviewsScreen() {
     if (!newReview) return;
     setSubmitting(true);
     try {
-      const response = await fetch('http://your-backend.com/api/reviews', {
+      const response = await fetch(`${BACKEND_URL}/api/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: newReview }),

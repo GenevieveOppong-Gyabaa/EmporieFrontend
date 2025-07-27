@@ -1,15 +1,16 @@
 import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Alert,
-  Platform,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Platform,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
+import { BACKEND_URL } from '../constants/config';
 
 export default function UserInfoScreen() {
   const [firstName, setFirstName] = useState('');
@@ -24,7 +25,7 @@ export default function UserInfoScreen() {
     }
     setLoading(true);
     try {
-      const response = await fetch('http://your-backend.com/api/userinfo', {
+      const response = await fetch(`${BACKEND_URL}/api/userinfo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ firstName, lastName, password }),

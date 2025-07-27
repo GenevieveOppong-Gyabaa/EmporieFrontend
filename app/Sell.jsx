@@ -15,6 +15,8 @@ import {
   View
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
+import { BACKEND_URL } from '../constants/config';
+import { useUser } from '../context/userContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -34,21 +36,26 @@ const deliveryServices = [
 ];
 
 const SellProductScreen = ({ navigation }) => {
+  const { user, setUser } = useUser();
   const [form, setForm] = useState({
-    category: '',
+    categoryId: '',
     title: '',
     region: '',
     description: '',
     name: '',
     phone: '',
     deliveryServices: '',
-    image: null,
-    upload: null,
+    images: [], // now an array
   });
-
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [errors, setErrors] = useState({});
-  const [submittedItems, setSubmittedItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [imageError, setImageError] = useState('');
+  // Removed: const [isBecomingSeller, setIsBecomingSeller] = useState(false);
+
+  const MAX_IMAGES = 3;
+  const MAX_IMAGE_SIZE_MB = 2;
 
   useEffect(() => {
     StatusBar.setBarStyle('light-content');
@@ -56,98 +63,156 @@ const SellProductScreen = ({ navigation }) => {
       StatusBar.setTranslucent(true);
       StatusBar.setBackgroundColor('transparent');
     }
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    setCategoriesLoading(true);
+    try {
+      const res = await fetch(`${BACKEND_URL}/categories`);
+      if (!res.ok) throw new Error('Failed to fetch categories');
+      const data = await res.json();
+      setCategories(data.map(cat => ({ label: cat.name, value: cat.id })));
+    } catch (err) {
+      Alert.alert('Error', 'Could not load categories');
+      setCategories([]);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
 
   const validate = () => {
     const newErrors = {};
-    if (!form.category) newErrors.category = 'Category is required';
+    if (!form.categoryId) newErrors.categoryId = 'Category is required';
     if (!form.title) newErrors.title = 'Title is required';
     if (!form.phone) newErrors.phone = 'Phone number is required';
     if (!form.name) newErrors.name = 'Name is required';
     if (!form.description) newErrors.description = 'Description is required';
+    if (!form.region) newErrors.region = 'Region is required';
+    if (!form.deliveryServices) newErrors.deliveryServices = 'Delivery service is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handlePickImage = async (field = 'image') => {
+  const handlePickImage = async () => {
+    if (form.images.length >= MAX_IMAGES) {
+      setImageError(`You can only upload up to ${MAX_IMAGES} images.`);
+      return;
+    }
+    setImageError('');
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 1,
     });
-
     if (!result.canceled) {
-      setForm({ ...form, [field]: result.assets[0].uri });
+      const asset = result.assets[0];
+      // Check for duplicate
+      if (form.images.some(img => img === asset.uri)) {
+        setImageError('This image is already added.');
+        return;
+      }
+      // Check file size (asset.fileSize is not always available, so fetch it if needed)
+      let fileSize = asset.fileSize;
+      if (fileSize == null && asset.uri.startsWith('file://')) {
+        try {
+          const fileInfo = await fetch(asset.uri);
+          const blob = await fileInfo.blob();
+          fileSize = blob.size;
+        } catch (e) {
+          fileSize = null;
+        }
+      }
+      if (fileSize != null && fileSize > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+        setImageError(`Each image must be less than ${MAX_IMAGE_SIZE_MB}MB.`);
+        return;
+      }
+      setForm({ ...form, images: [...form.images, asset.uri] });
     }
   };
 
-  const removeImage = (field) => {
-    setForm({ ...form, [field]: null });
+  const removeImage = (uri) => {
+    setForm({ ...form, images: form.images.filter(img => img !== uri) });
+    setImageError('');
   };
 
+  // Removed: Helper to check if user is a seller (assume user.role is available after login/become-seller)
+  // Removed: const isSeller = user && user.role === 'SELLER';
+
+  // Removed: becomeSeller
+
   const handleSubmit = async () => {
+    console.log('user context:', user);
     if (!validate()) {
       Alert.alert('Validation Error', 'Please fill all required fields.');
       return;
     }
+    if (form.images.length === 0) {
+      setImageError('Please add at least one image.');
+      return;
+    }
     setLoading(true);
     try {
-      // For demo, use numeric userId and categoryId
-      const userId = 1; // Replace with real user ID if available
-      const categoryId = 2; // Replace with real category ID if available
+      if (!user || !user.token || !user.id) throw new Error('User not authenticated');
+      // No need to check or become seller, just proceed with product creation
       const payload = {
         name: form.title,
         description: form.description,
-        userId,
-        categoryId,
+        userId: user.id,
+        categoryId: form.categoryId,
         imageUrls: [],
-        tags: [], // Add tags if you have them, otherwise empty array
+        tags: [],
       };
       // Step 1: Create product (no image)
-      const createRes = await fetch('http://your-backend.com/products', {
+      const createRes = await fetch(`${BACKEND_URL}/products`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}`,
+        },
         body: JSON.stringify(payload),
       });
       if (!createRes.ok) {
         const errorData = await createRes.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to create product');
+        throw new Error(errorData.error || errorData.message || 'Failed to create product');
       }
       const createdProduct = await createRes.json();
-      // Step 2: Upload image if present
-      if (form.image) {
+      // Step 2: Upload images if present
+      if (form.images.length > 0) {
         const imageData = new FormData();
-        imageData.append('images', {
-          uri: form.image,
-          name: 'product-image.jpg',
-          type: 'image/jpeg',
+        form.images.forEach((img, idx) => {
+          imageData.append('images', {
+            uri: img,
+            name: `product-image-${idx}.jpg`,
+            type: 'image/jpeg',
+          });
         });
-        // Upload to /products/{productId}/upload-images?userId={userId}
-        const uploadRes = await fetch(`http://your-backend.com/products/${createdProduct.id}/upload-images?userId=${userId}`, {
+        const uploadRes = await fetch(`${BACKEND_URL}/products/${createdProduct.id}/upload-images?userId=${user.id}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${user.token}`,
           },
           body: imageData,
         });
         if (!uploadRes.ok) {
           const errorData = await uploadRes.json().catch(() => ({}));
-          throw new Error(errorData.message || 'Failed to upload image');
+          throw new Error(errorData.error || errorData.message || 'Failed to upload image');
         }
       }
       Alert.alert('Success', 'Product submitted!');
       setForm({
-        category: '',
+        categoryId: '',
         title: '',
         region: '',
         description: '',
         name: '',
         phone: '',
         deliveryServices: '',
-        image: null,
-        upload: null,
+        images: [],
       });
       setErrors({});
+      setImageError('');
       navigation.navigate('ProductList');
     } catch (error) {
       Alert.alert('Error', error.message || 'Could not connect to backend.');
@@ -188,14 +253,18 @@ const SellProductScreen = ({ navigation }) => {
         <View style={{ width: '90%', alignSelf: 'center' }}>
           {/* Category Picker */}
           <Text style={styles.emptyText}>Category</Text>
-          <RNPickerSelect
-            onValueChange={(value) => setForm({ ...form, category: value })}
-            items={categories}
-            value={form.category}
-            placeholder={{ label: 'Select Category', value: null }}
-            style={pickerSelectStyles}
-          />
-          {errors.category && <Text style={styles.errorText}>{errors.category}</Text>}
+          {categoriesLoading ? (
+            <Text>Loading categories...</Text>
+          ) : (
+            <RNPickerSelect
+              onValueChange={(value) => setForm({ ...form, categoryId: value })}
+              items={categories}
+              value={form.categoryId}
+              placeholder={{ label: 'Select Category', value: null }}
+              style={pickerSelectStyles}
+            />
+          )}
+          {errors.categoryId && <Text style={styles.errorText}>{errors.categoryId}</Text>}
 
           {/* Title */}
           {renderInput('Title', 'title')}
@@ -225,19 +294,23 @@ const SellProductScreen = ({ navigation }) => {
           />
 
           {/* Image Picker */}
-          <Text style={styles.emptyText}>Add Image</Text>
-          {form.image ? (
-            <View style={styles.imageWrapper}>
-              <Image source={{ uri: form.image }} style={styles.image} />
-              <TouchableOpacity onPress={() => removeImage('image')}>
-                <Text style={styles.removeText}>Remove</Text>
+          <Text style={styles.emptyText}>Add Images (up to 3, max 2MB each)</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 10 }}>
+            {form.images.map((img, idx) => (
+              <View key={img} style={{ alignItems: 'center', marginRight: 10 }}>
+                <Image source={{ uri: img }} style={styles.image} />
+                <TouchableOpacity onPress={() => removeImage(img)}>
+                  <Text style={styles.removeText}>Remove</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+            {form.images.length < MAX_IMAGES && (
+              <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
+                <Text>Add Image</Text>
               </TouchableOpacity>
-            </View>
-          ) : (
-            <TouchableOpacity style={styles.imagePicker} onPress={() => handlePickImage('image')}>
-              <Text>Select Image</Text>
-            </TouchableOpacity>
-          )}
+            )}
+          </View>
+          {imageError ? <Text style={{ color: 'red', marginBottom: 8 }}>{imageError}</Text> : null}
 
           {/* Description */}
           <Text style={styles.emptyText}>Description</Text>
@@ -252,21 +325,6 @@ const SellProductScreen = ({ navigation }) => {
             }}
           />
           {errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
-
-          {/* Upload Picker */}
-          <Text style={styles.emptyText}>Upload</Text>
-          {form.upload ? (
-            <View style={styles.imageWrapper}>
-              <Image source={{ uri: form.upload }} style={styles.image} />
-              <TouchableOpacity onPress={() => removeImage('upload')}>
-                <Text style={styles.removeText}>Remove</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <TouchableOpacity style={styles.imagePicker} onPress={() => handlePickImage('upload')}>
-              <Text>Select File</Text>
-            </TouchableOpacity>
-          )}
 
           {/* Submit */}
           <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={loading}>

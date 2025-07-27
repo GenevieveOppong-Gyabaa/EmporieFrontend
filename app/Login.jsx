@@ -14,12 +14,14 @@ import {
     View,
 } from 'react-native';
 import { API_ENDPOINTS } from '../constants/config';
+import { useUser } from '../context/userContext';
 
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const { setUser } = useUser();
 
   const [fontsLoaded] = useFonts({
     PoppinsBold: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -41,7 +43,9 @@ export default function LoginScreen() {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || 'Login failed');
       }
-      // Optionally save token here
+      
+      // Save user data after successful login
+      setUser({ email });
       Alert.alert('Success', 'Logged in successfully!');
       router.replace('./(tabs)/Home');
     } catch (error) {

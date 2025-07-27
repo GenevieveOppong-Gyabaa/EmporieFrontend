@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect } from 'react';
 import {
@@ -11,14 +10,39 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useUser } from '../context/userContext';
 
 const SignOutScreen = () => {
-  const navigation = useNavigation();
+  const router = useRouter();
+  const { logout, user } = useUser();
 
-  const handleSignOut = () => {
-    console.log('User signed out');
-    // Add sign-out logic here
+  const handleSignOut = async () => {
+    Alert.alert(
+      'Confirm Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+              Alert.alert('Success', 'You have been signed out successfully!');
+              router.replace('./Login');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   useEffect(() => {
@@ -38,7 +62,7 @@ const SignOutScreen = () => {
         end={{ x: 1, y: 1 }}
         style={styles.header}
       >
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Sign Out</Text>
@@ -55,7 +79,7 @@ const SignOutScreen = () => {
         <Text style={styles.message}>Do you want to sign out of Emporie?</Text>
 
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.cancelBtn} onPress={() => navigation.goBack()}>
+          <TouchableOpacity style={styles.cancelBtn} onPress={() => router.back()}>
             <Text style={styles.cancelText}>Cancel</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>

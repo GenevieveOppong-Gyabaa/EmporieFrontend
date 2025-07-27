@@ -1,25 +1,28 @@
-import React, { useEffect } from 'react';
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  Platform,
-  StatusBar,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import {
   Feather,
   FontAwesome5,
   Ionicons,
-  MaterialIcons,
   MaterialCommunityIcons,
+  MaterialIcons,
 } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import React, { useEffect } from 'react';
+import {
+  Platform,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useUser } from '../context/userContext';
 
 export default function ProfileScreen({ route }) {
   const router = useRouter();
-  const userEmail = route?.params?.email || 'user@example.com';
+  const { user } = useUser();
+  const userEmail = user?.email || 'user@example.com';
 
   useEffect(() => {
     StatusBar.setBarStyle('light-content');
@@ -30,7 +33,7 @@ export default function ProfileScreen({ route }) {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Gradient Header */}
       <LinearGradient
         colors={['#361696', '#9C4DCC']}
@@ -38,6 +41,12 @@ export default function ProfileScreen({ route }) {
         end={{ x: 1, y: 1 }}
         style={styles.header}
       >
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>My Profile</Text>
       </LinearGradient>
 
@@ -88,8 +97,16 @@ export default function ProfileScreen({ route }) {
           <MaterialCommunityIcons name="star-circle" size={24} color="#fff" />
           <Text style={styles.menuText}>Reviews</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.menuItem, styles.red]}
+          onPress={() => router.push('./SignOut')}
+        >
+          <MaterialIcons name="logout" size={24} color="#fff" />
+          <Text style={styles.menuText}>Sign Out</Text>
+        </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -110,6 +127,13 @@ const styles = StyleSheet.create({
     zIndex: 10,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    padding: 8,
   },
   headerTitle: {
     color: '#fff',
@@ -164,5 +188,8 @@ const styles = StyleSheet.create({
   },
   pink: {
     backgroundColor: '#D81B60',
+  },
+  red: {
+    backgroundColor: '#E53935',
   },
 });

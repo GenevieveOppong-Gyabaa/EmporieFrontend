@@ -1,6 +1,7 @@
+import { BACKEND_URL } from '../constants/config';
 import { CartItem } from '../context/cartContext';
 
-const API_URL = 'http://your-backend.com/api/cart';
+const API_URL = `${BACKEND_URL}/api/cart`;
 
 export async function fetchCart(userId: string): Promise<CartItem[]> {
   try {
@@ -12,16 +13,3 @@ export async function fetchCart(userId: string): Promise<CartItem[]> {
     return [];
   }
 }
-
-export async function updateCart(userId: string, cart: CartItem[]): Promise<void> {
-  try {
-    await fetch(`${API_URL}?userId=${userId}` , {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(cart),
-    });
-  } catch (error) {
-    console.warn('Failed to update cart on backend.', error);
-    // Optionally queue for retry or fallback to local storage
-  }
-} 

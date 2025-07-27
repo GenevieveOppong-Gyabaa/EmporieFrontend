@@ -10,6 +10,7 @@ import {
     Text,
     View
 } from 'react-native';
+import { BACKEND_URL } from '../constants/config';
 
 const STATUS_BAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 44;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -25,7 +26,7 @@ export default function PurchasesScreen() {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch('http://your-backend.com/api/purchases');
+        const response = await fetch(`${BACKEND_URL}/api/purchases`);
         if (!response.ok) throw new Error('Failed to fetch purchases');
         const data = await response.json();
         setPurchases(data);
