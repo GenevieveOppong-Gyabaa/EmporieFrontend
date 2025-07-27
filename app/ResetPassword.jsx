@@ -1,9 +1,10 @@
-import { Link, router } from 'expo-router';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { BACKEND_URL } from '../constants/config';
+import { API_ENDPOINTS } from '../constants/config';
 
 export default function ResetPasswordScreen() {
+  const { token } = useLocalSearchParams();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -13,27 +14,52 @@ export default function ResetPasswordScreen() {
       Alert.alert('Missing Info', 'Please fill in all fields.');
       return;
     }
+    
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match.');
       return;
     }
+    
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters long.');
+      return;
+    }
+    
+    if (!token) {
+      Alert.alert('Error', 'Invalid reset token. Please request a new password reset.');
+      return;
+    }
+
     setLoading(true);
     try {
-      // Assume token is passed via navigation params or similar
-      const token = '';
-      const response = await fetch(`${BACKEND_URL}/api/reset-password`, {
+      const response = await fetch(API_ENDPOINTS.RESET_PASSWORD, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password, token }),
+        body: JSON.stringify({ 
+          password,
+          token 
+        }),
       });
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to reset password');
+        throw new Error(errorData.message || errorData.error || 'Failed to reset password');
       }
-      Alert.alert('Success', 'Password reset!');
-      router.replace('/Login');
+      
+      const data = await response.json();
+      Alert.alert(
+        'Success', 
+        'Password reset successfully! You can now login with your new password.',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace('/Login')
+          }
+        ]
+      );
     } catch (error) {
-      Alert.alert('Error', error.message || 'Could not connect to backend.');
+      console.error('Reset password error:', error);
+      Alert.alert('Error', error.message || 'Could not connect to backend. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -43,6 +69,9 @@ export default function ResetPasswordScreen() {
     <View style={styles.container}>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <Text style={styles.title}>Reset Password</Text>
+      <Text style={styles.subtitle}>
+        Enter your new password below.
+      </Text>
       <TextInput
         placeholder="New Password"
         style={styles.input}
@@ -52,7 +81,7 @@ export default function ResetPasswordScreen() {
         placeholderTextColor="#888"
       />
       <TextInput
-        placeholder="Confirm Password"
+        placeholder="Confirm New Password"
         style={styles.input}
         value={confirmPassword}
         onChangeText={setConfirmPassword}
@@ -73,12 +102,25 @@ export default function ResetPasswordScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 40,
+    backgroundColor: '#fff',
+  },
   title: {
     fontSize: 20,
     fontWeight: '600',
     marginBottom: 30,
     textAlign: 'center',
     color: '#333',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
   },
   input: {
     height: 48,
@@ -91,14 +133,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
     color: '#333',
   },
-  button: {
+  resetBtn: {
     backgroundColor: '#361696',
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 10,
   },
-  buttonText: {
+  resetText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',

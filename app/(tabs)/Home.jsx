@@ -1,34 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
+  Dimensions,
   FlatList,
   Image,
   Modal,
+  SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  SafeAreaView,
-  Dimensions,
-  StatusBar,
-  ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import Art from '../../assets/images/Art.png';
 import Beauty from '../../assets/images/beauty.png';
+import Books from '../../assets/images/Books.png';
 import Electronics from '../../assets/images/electronics.png';
+import Groceries from '../../assets/images/Groceries.png';
+import Health from '../../assets/images/Health.png';
+import HomeDecor from '../../assets/images/HomeandLiving.png';
 import MenOfficial from '../../assets/images/MenWear.png';
 import discoverImg from '../../assets/images/partygift.png';
-import Health from '../../assets/images/Health.png';
-import Toys from '../../assets/images/Toys.png';
-import Groceries from '../../assets/images/Groceries.png';
-import Books from '../../assets/images/Books.png';
-import Art from '../../assets/images/Art.png';
 import Sports from '../../assets/images/Sport.png';
-import HomeDecor from '../../assets/images/HomeandLiving.png';
+import Toys from '../../assets/images/Toys.png';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
