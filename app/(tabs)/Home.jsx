@@ -1,22 +1,23 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Dimensions,
-  FlatList,
-  Image,
-  Modal,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Dimensions,
+    FlatList,
+    Image,
+    Modal,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { API_ENDPOINTS } from '../../constants/config';
 
 import Art from '../../assets/images/Art.png';
 import Beauty from '../../assets/images/beauty.png';
@@ -32,7 +33,8 @@ import Toys from '../../assets/images/Toys.png';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const categories = [
+// Fallback categories if backend is not available
+const fallbackCategories = [
   { id: '1', name: 'Beauty', image: Beauty },
   { id: '2', name: 'Fashion', image: MenOfficial },
   { id: '3', name: 'Health', image: Health },
@@ -46,34 +48,104 @@ const categories = [
 ];
 
 export default function HomeScreen() {
-  const navigation = useNavigation();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [productData, setProductData] = useState([]);
+  const [categories, setCategories] = useState(fallbackCategories);
   const [loading, setLoading] = useState(true);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
 
   const handleCategorySelect = (cat) => {
     setSelectedCategory(cat);
     setModalVisible(false);
+    // Navigate to category products screen
+    router.push({
+      pathname: '../CategoryItems',
+      params: { categoryName: cat.name, categoryId: cat.id }
+    });
   };
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch('https://your-backend-url.com/api/products');
-        const data = await response.json();
-        setProductData(data);
-      } catch (error) {
-        console.error('Failed to fetch products:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleCategoryPress = (category) => {
+    // Navigate to category products screen
+    router.push({
+      pathname: '../CategoryItems',
+      params: { categoryName: category.name, categoryId: category.id }
+    });
+  };
 
+  // Fetch categories from backend
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  // Fetch products from backend
+  useEffect(() => {
     fetchProducts();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      setCategoriesLoading(true);
+      const response = await fetch(API_ENDPOINTS.CATEGORIES);
+      if (response.ok) {
+        const data = await response.json();
+        // Map backend categories to include local images
+        const mappedCategories = data.map(cat => ({
+          ...cat,
+          image: getCategoryImage(cat.name)
+        }));
+        setCategories(mappedCategories);
+      } else {
+        console.log('Backend not available, using fallback categories');
+        setCategories(fallbackCategories);
+      }
+    } catch (error) {
+      console.log('Error fetching categories, using fallback:', error);
+      setCategories(fallbackCategories);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(API_ENDPOINTS.PRODUCTS);
+      if (response.ok) {
+        const data = await response.json();
+        setProductData(data);
+      } else {
+        console.log('Backend not available, using mock data');
+        // Fallback to mock data if backend is not available
+        setProductData([]);
+      }
+    } catch (error) {
+      console.log('Error fetching products, using mock data:', error);
+      setProductData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helper function to map category names to local images
+  const getCategoryImage = (categoryName) => {
+    const imageMap = {
+      'Beauty': Beauty,
+      'Fashion': MenOfficial,
+      'Health': Health,
+      'Toys': Toys,
+      'Electronics': Electronics,
+      'Groceries': Groceries,
+      'Books': Books,
+      'Art': Art,
+      'Sports': Sports,
+      'Home Decor': HomeDecor,
+    };
+    return imageMap[categoryName] || Beauty; // Default to Beauty if not found
+  };
 
   return (
     <SafeAreaView style={[styles.container, { paddingTop: 0 }]}>
@@ -88,10 +160,10 @@ export default function HomeScreen() {
             style={{ flex: 1, fontSize: 15 }}
           />
         </View>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('Favorites')}>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('Favorites')}>
           <Ionicons name="notifications-outline" size={22} color="#222" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('Profile')}>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('Profile')}>
           <Ionicons name="person-circle-outline" size={22} color="#222" />
         </TouchableOpacity>
       </View>
@@ -110,16 +182,20 @@ export default function HomeScreen() {
         </View>
 
         <Text style={styles.sectionTitle}>Recommended Categories</Text>
-        <View style={styles.categoriesGrid}>
-          {categories.slice(0, 4).map((c) => (
-            <TouchableOpacity key={c.id} style={styles.categoryCard}>
-              <Image source={c.image} style={styles.categoryImage} />
-              <View style={styles.categoryLabelWrap}>
-                <Text style={styles.categoryLabel}>{c.name}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {categoriesLoading ? (
+          <ActivityIndicator size="large" color="#361696" style={{ marginVertical: 20 }} />
+        ) : (
+          <View style={styles.categoriesGrid}>
+            {categories.slice(0, 4).map((c) => (
+              <TouchableOpacity key={c.id} style={styles.categoryCard} onPress={() => handleCategoryPress(c)}>
+                <Image source={c.image} style={styles.categoryImage} />
+                <View style={styles.categoryLabelWrap}>
+                  <Text style={styles.categoryLabel}>{c.name}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
         <TouchableOpacity style={styles.allCategoriesBtn} onPress={() => setModalVisible(true)}>
           <Text style={styles.allCategoriesText}>All Categories</Text>
@@ -154,7 +230,7 @@ export default function HomeScreen() {
               {categories.map((c) => (
                 <TouchableOpacity
                   key={c.id}
-                  onPress={() => handleCategorySelect(c.name)}
+                  onPress={() => handleCategorySelect(c)}
                   style={styles.modalItem}
                 >
                   <Text style={styles.modalItemText}>{c.name}</Text>
@@ -170,7 +246,7 @@ export default function HomeScreen() {
 
       <TouchableOpacity
         style={styles.floatingIcon}
-        onPress={() => navigation.navigate('Dashboard')}
+        onPress={() => router.push('Dashboard')}
       >
         <Ionicons name="grid" size={28} color="green" />
       </TouchableOpacity>

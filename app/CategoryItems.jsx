@@ -15,7 +15,7 @@ import {
     View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BACKEND_URL } from '../constants/config';
+import { API_ENDPOINTS } from '../constants/config';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -72,7 +72,7 @@ export default function CategoryItemsScreen() {
   const fetchCategoryProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${BACKEND_URL}/products?categoryId=${categoryId}`);
+      const response = await fetch(`${API_ENDPOINTS.PRODUCTS}?categoryId=${categoryId}`);
       if (response.ok) {
         const data = await response.json();
         setProducts(data);
