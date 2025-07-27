@@ -17,6 +17,7 @@ import {
   View
 } from 'react-native';
 import { useUser } from '../context/userContext';
+import { addToCart } from '../services/cartService';
 import { createChatRoom } from '../services/chatService';
 import {
   mockCreateChatRoom,
@@ -468,22 +469,60 @@ export default function ProductDetailsScreen() {
           style={styles.chatButtonLarge}
           onPress={handleChatWithSeller}
         >
-          <Ionicons name="chatbubble-ellipses" size={24} color="#fff" />
-          <Text style={styles.chatButtonText}>Chat with Seller</Text>
+          <Ionicons name="chatbubble-ellipses" size={20} color="#fff" />
+          <Text style={styles.chatButtonText}>Chat</Text>
         </TouchableOpacity>
         
         <TouchableOpacity
           style={styles.addToCartButton}
-          onPress={() => {
-            Alert.alert(
-              'Add to Cart',
-              `Added ${quantity} x ${product.title}${selectedSize ? ` (${selectedSize})` : ''}${selectedColor ? ` - ${selectedColor}` : ''}`
-            );
+          onPress={async () => {
+            try {
+              await addToCart({
+                productId: product.id,
+                title: product.title,
+                price: product.price,
+                quantity: quantity,
+                image: product.images?.[0],
+                selectedSize: selectedSize,
+                selectedColor: selectedColor,
+              });
+              Alert.alert(
+                'Success',
+                `Added ${quantity} x ${product.title}${selectedSize ? ` (${selectedSize})` : ''}${selectedColor ? ` - ${selectedColor}` : ''} to cart`
+              );
+            } catch (error) {
+              Alert.alert('Error', 'Failed to add item to cart');
+            }
           }}
           disabled={!product.inStock}
         >
           <Text style={styles.addToCartText}>
             {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.buyNowButton}
+          onPress={() => {
+            Alert.alert(
+              'Buy Now',
+              `Proceeding to checkout for ${quantity} x ${product.title}${selectedSize ? ` (${selectedSize})` : ''}${selectedColor ? ` - ${selectedColor}` : ''}`
+            );
+            // Navigate to checkout
+            router.push({
+              pathname: './cart/checkout',
+              params: { 
+                productId: productId,
+                quantity: quantity,
+                selectedSize: selectedSize,
+                selectedColor: selectedColor
+              }
+            });
+          }}
+          disabled={!product.inStock}
+        >
+          <Text style={styles.buyNowText}>
+            {product.inStock ? 'Buy Now' : 'Out of Stock'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -761,10 +800,10 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#eee',
     flexDirection: 'row',
-    gap: 12,
+    gap: 8,
   },
   chatButtonLarge: {
-    flex: 1,
+    flex: 0.8,
     backgroundColor: '#4CAF50',
     borderRadius: 25,
     paddingVertical: 12,
@@ -779,13 +818,25 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   addToCartButton: {
-    flex: 2,
+    flex: 1.2,
     backgroundColor: PRIMARY,
     borderRadius: 25,
     paddingVertical: 12,
     alignItems: 'center',
   },
   addToCartText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  buyNowButton: {
+    flex: 1,
+    backgroundColor: '#4CAF50',
+    borderRadius: 25,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  buyNowText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',

@@ -1,7 +1,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Dimensions,
   FlatList,
@@ -17,6 +17,7 @@ import {
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BACKEND_URL } from '../../constants/config';
 //import { StatusBar } from 'expo-status-bar';
 
 
@@ -29,22 +30,6 @@ import Electronics from '../../assets/images/electronics.png';
 import Groceries from '../../assets/images/Groceries.png';
 import Health from '../../assets/images/Health.png';
 import HomeDecor from '../../assets/images/HomeandLiving.png';
-import Item15 from '../../assets/images/Item 16.png';
-import Item16 from '../../assets/images/Item 18.png';
-import Item1 from '../../assets/images/Item1.png';
-import Item10 from '../../assets/images/Item10.png';
-import Item11 from '../../assets/images/Item11.png';
-import Item12 from '../../assets/images/Item12.png';
-import Item13 from '../../assets/images/Item13.png';
-import Item14 from '../../assets/images/Item14.png';
-import Item2 from '../../assets/images/Item2.png';
-import Item3 from '../../assets/images/Item3.png';
-import Item4 from '../../assets/images/Item4.png';
-import Item5 from '../../assets/images/Item5.png';
-import Item6 from '../../assets/images/Item6.png';
-import Item7 from '../../assets/images/Item7.png';
-import Item8 from '../../assets/images/Item8.png';
-import Item9 from '../../assets/images/Item9.png';
 import MenOfficial from '../../assets/images/MenWear.png';
 import discoverImg from '../../assets/images/partygift.png';
 import Sports from '../../assets/images/Sport.png';
@@ -65,8 +50,7 @@ const categories = [
   { id: '9', name: "Sports",         image: Sports },
   { id: '10', name: "Home Decor",         image: HomeDecor },
 ];
-
-const productData = [
+{/*const productData = [
   { id: '1',  img: Item1,  title: "Mixed-beads for male and female",  price: 30.00, rating: 4.3 },
   { id: '2',  img: Item15,  title: "Mixed-beads for male and female",  price: 30.00, rating: 4.3 },
   { id: '3',  img: Item16,  title: "Lil's beads",  price: 20.00, rating: 4.3 },
@@ -83,7 +67,7 @@ const productData = [
   { id: '14', img: Item12, title: 'Sweet honey',               price: 33.00, rating: 4.2  },
   { id: '15', img: Item13, title: 'Phone case',             price: 30.00, rating: 4.8  },
   { id: '16', img: Item14, title: "Luxurious lady's bag",              price: 500.00, rating: 4.0  },
-];
+];*/}
 
 
 export default function HomeScreen() {
@@ -92,10 +76,51 @@ export default function HomeScreen() {
 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch products from backend
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${BACKEND_URL}/products`);
+      if (response.ok) {
+        const data = await response.json();
+        setProducts(data);
+      } else {
+        console.log('Backend not available, using mock data');
+        // Fallback to mock data if backend is not available
+        setProducts(productData);
+      }
+    } catch (error) {
+      console.log('Error fetching products, using mock data:', error);
+      // Fallback to mock data
+      setProducts(productData);
+    } finally {
+      setLoading(false);
+    }
+  };
 
    const handleCategorySelect = (cat) => {
     setSelectedCategory(cat);
     setModalVisible(false);
+    // Navigate to category products screen
+    router.push({
+      pathname: '../CategoryItems',
+      params: { categoryName: cat }
+    });
+  };
+
+  const handleCategoryPress = (category) => {
+    // Navigate to category products screen
+    router.push({
+      pathname: '../CategoryItems',
+      params: { categoryName: category.name, categoryId: category.id }
+    });
   };
  
   return (
@@ -142,7 +167,11 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Recommended Categories</Text>
         <View style={styles.categoriesGrid}>
           {categories.slice(0, 4).map((c) => (
-            <TouchableOpacity key={c.id} style={styles.categoryCard}>
+            <TouchableOpacity 
+              key={c.id} 
+              style={styles.categoryCard}
+              onPress={() => handleCategoryPress(c)}
+            >
               <Image source={c.image} style={styles.categoryImage} />
               <View style={styles.categoryLabelWrap}>
                 <Text style={styles.categoryLabel}>{c.name}</Text>
@@ -158,24 +187,30 @@ export default function HomeScreen() {
 
         {/* ███ Trending Picks */}
         <Text style={styles.sectionTitle}>Trending Picks</Text>
-                 <FlatList
-           data={productData}
-           numColumns={2}
-           columnWrapperStyle={{ justifyContent: 'space-between' }}
-           keyExtractor={(item) => item.id}
-           scrollEnabled={false}
-           renderItem={({ item }) => (
-             <ProductCard 
-               {...item} 
-               onPress={() => {
-                 router.push({
-                   pathname: '../Details',
-                   params: { productId: item.id || '1' }
-                 });
-               }}
-             />
-           )}
-         />
+        {loading ? (
+          <View style={{ padding: 20, alignItems: 'center' }}>
+            <Text>Loading products...</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={products}
+            numColumns={2}
+            columnWrapperStyle={{ justifyContent: 'space-between' }}
+            keyExtractor={(item) => item.id?.toString() || item.id}
+            scrollEnabled={false}
+            renderItem={({ item }) => (
+              <ProductCard 
+                {...item} 
+                onPress={() => {
+                  router.push({
+                    pathname: '../Details',
+                    params: { productId: item.id?.toString() || item.id }
+                  });
+                }}
+              />
+            )}
+          />
+        )}
       </ScrollView>
 
       {/* ███ Category modal */}

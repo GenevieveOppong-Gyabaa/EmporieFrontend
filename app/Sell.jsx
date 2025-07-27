@@ -1,5 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -37,6 +38,7 @@ const deliveryServices = [
 
 const SellProductScreen = ({ navigation }) => {
   const { user, setUser } = useUser();
+  const router = useRouter();
   const [form, setForm] = useState({
     categoryId: '',
     title: '',
@@ -213,7 +215,7 @@ const SellProductScreen = ({ navigation }) => {
       });
       setErrors({});
       setImageError('');
-      navigation.navigate('ProductList');
+      router.replace('/ProductList');
     } catch (error) {
       Alert.alert('Error', error.message || 'Could not connect to backend.');
     } finally {
