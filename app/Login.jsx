@@ -74,7 +74,7 @@ export default function LoginScreen() {
         <Text style={[styles.header, { fontFamily: 'PoppinsBold' }]}>Login</Text>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.text}>Username</Text>
+          <Text style={styles.text}>Email</Text>
           <TextInput
             style={styles.textInput}
             value={email}
