@@ -85,6 +85,8 @@ const SellProductScreen = ({ navigation }) => {
     fetchCategories();
   }, []);
 
+
+
   const fetchCategories = async () => {
     setCategoriesLoading(true);
     try {
@@ -170,7 +172,6 @@ const SellProductScreen = ({ navigation }) => {
 
 
   const handleSubmit = async () => {
-    console.log('user context:', user);
     if (!validate()) {
       Alert.alert('Validation Error', 'Please fill all required fields.');
       return;
@@ -181,7 +182,9 @@ const SellProductScreen = ({ navigation }) => {
     }
     setLoading(true);
     try {
-      if (!user || !user.token || !user.id) throw new Error('User not authenticated');
+      if (!user || !user.token || !user.id) {
+        throw new Error('User not authenticated');
+      }
 
       const payload = {
         name: form.title,
@@ -242,7 +245,7 @@ const SellProductScreen = ({ navigation }) => {
       });
       setErrors({});
       setImageError('');
-      router.replace('/ProductList');
+      router.replace('/Profile');
     } catch (error) {
       Alert.alert('Error', error.message || 'Could not connect to backend.');
     } finally {
@@ -474,9 +477,9 @@ const SellProductScreen = ({ navigation }) => {
             />
             {errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
 
-            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
-              <Text style={styles.submitText}>{loading ? 'Submitting...' : 'Submit'}</Text>
-            </TouchableOpacity>
+                      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
+            <Text style={styles.submitText}>{loading ? 'Submitting...' : 'Submit'}</Text>
+          </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
