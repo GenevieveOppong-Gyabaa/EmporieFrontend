@@ -6,6 +6,7 @@ import {
   Alert,
   Dimensions,
   Image,
+  KeyboardAvoidingView,
   Platform,
   ScrollView,
   StatusBar,
@@ -277,201 +278,208 @@ const SellProductScreen = ({ navigation }) => {
         <Text style={styles.headerTitle}>Sell a Product</Text>
       </LinearGradient>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={{ width: '90%', alignSelf: 'center' }}>
-          <Text style={styles.emptyText}>Category</Text>
-          <TouchableOpacity 
-            style={[styles.input, { marginBottom: 10 }]} 
-            onPress={() => setShowCategoryDropdown(!showCategoryDropdown)}
-          >
-            <Text style={{ color: form.categoryId ? '#000' : '#888' }}>
-              {form.categoryId ? categories.find(c => c.value === form.categoryId)?.label || 'Select Category' : 'Select Category'}
-            </Text>
-          </TouchableOpacity>
-          {showCategoryDropdown && (
-            <View style={{
-              position: 'absolute',
-              top: 120,
-              left: 20,
-              right: 20,
-              backgroundColor: '#fff',
-              borderWidth: 1,
-              borderColor: '#ccc',
-              borderRadius: 8,
-              zIndex: 1000,
-              maxHeight: 300,
-            }}>
-              <ScrollView style={{ maxHeight: 280 }}>
-                {categories.map((category) => (
-                  <TouchableOpacity
-                    key={category.value}
-                    style={{ 
-                      padding: 15, 
-                      borderBottomWidth: 1, 
-                      borderBottomColor: '#eee',
-                      backgroundColor: form.categoryId === category.value ? '#f0f0f0' : '#fff'
-                    }}
-                    onPress={() => {
-                      console.log('Selected category:', category.value);
-                      setForm({ ...form, categoryId: category.value });
-                      setShowCategoryDropdown(false);
-                    }}
-                  >
-                    <Text style={{ 
-                      fontSize: 16,
-                      color: form.categoryId === category.value ? '#361696' : '#000',
-                      fontWeight: form.categoryId === category.value ? '600' : '400'
-                    }}>
-                      {category.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-          {errors.categoryId && <Text style={styles.errorText}>{errors.categoryId}</Text>}
-
-    
-          {renderInput('Title', 'title')}
-
-   
-          <Text style={styles.emptyText}>Region</Text>
-          <TouchableOpacity 
-            style={[styles.input, { marginBottom: 10 }]} 
-            onPress={() => setShowRegionDropdown(!showRegionDropdown)}
-          >
-            <Text style={{ color: form.region ? '#000' : '#888' }}>
-              {form.region || 'Select Region'}
-            </Text>
-          </TouchableOpacity>
-          {showRegionDropdown && (
-            <View style={{
-              position: 'absolute',
-              top: 280,
-              left: 20,
-              right: 20,
-              backgroundColor: '#fff',
-              borderWidth: 1,
-              borderColor: '#ccc',
-              borderRadius: 8,
-              zIndex: 1000,
-              maxHeight: 300,
-            }}>
-              <ScrollView style={{ maxHeight: 280 }}>
-                {regions.map((region) => (
-                  <TouchableOpacity
-                    key={region.value}
-                    style={{ 
-                      padding: 15, 
-                      borderBottomWidth: 1, 
-                      borderBottomColor: '#eee',
-                      backgroundColor: form.region === region.value ? '#f0f0f0' : '#fff'
-                    }}
-                    onPress={() => {
-                      console.log('Selected region:', region.value);
-                      setForm({ ...form, region: region.value });
-                      setShowRegionDropdown(false);
-                    }}
-                  >
-                    <Text style={{ 
-                      fontSize: 16,
-                      color: form.region === region.value ? '#361696' : '#000',
-                      fontWeight: form.region === region.value ? '600' : '400'
-                    }}>
-                      {region.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-
-          
-          {renderInput('Name', 'name')}
-          {renderInput('Phone number', 'phone', 'phone-pad')}
-          {renderInput('Price (GHS)', 'price', 'numeric')}
-
-          <Text style={styles.emptyText}>Delivery Services</Text>
-          <TouchableOpacity 
-            style={[styles.input, { marginBottom: 10 }]} 
-            onPress={() => setShowDeliveryDropdown(!showDeliveryDropdown)}
-          >
-            <Text style={{ color: form.deliveryServices ? '#000' : '#888' }}>
-              {form.deliveryServices || 'Select Delivery Option'}
-            </Text>
-          </TouchableOpacity>
-          {showDeliveryDropdown && (
-            <View style={{
-              backgroundColor: '#fff',
-              borderWidth: 1,
-              borderColor: '#ccc',
-              borderRadius: 8,
-              marginBottom: 10,
-              maxHeight: 200,
-            }}>
-              <ScrollView style={{ maxHeight: 180 }}>
-                {deliveryServices.map((service) => (
-                  <TouchableOpacity
-                    key={service.value}
-                    style={{ 
-                      padding: 15, 
-                      borderBottomWidth: 1, 
-                      borderBottomColor: '#eee',
-                      backgroundColor: form.deliveryServices === service.value ? '#f0f0f0' : '#fff'
-                    }}
-                    onPress={() => {
-                      console.log('Selected delivery service:', service.value);
-                      setForm({ ...form, deliveryServices: service.value });
-                      setShowDeliveryDropdown(false);
-                    }}
-                  >
-                    <Text style={{ 
-                      fontSize: 16,
-                      color: form.deliveryServices === service.value ? '#361696' : '#000',
-                      fontWeight: form.deliveryServices === service.value ? '600' : '400'
-                    }}>
-                      {service.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-          <Text style={styles.emptyText}>Add Images (up to 3, max 2MB each)</Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 10 }}>
-            {form.images.map((img, idx) => (
-              <View key={img} style={{ alignItems: 'center', marginRight: 10 }}>
-                <Image source={{ uri: img }} style={styles.image} />
-                <TouchableOpacity onPress={() => removeImage(img)}>
-                  <Text style={styles.removeText}>Remove</Text>
-                </TouchableOpacity>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView contentContainerStyle={styles.content}>
+          <View style={{ width: '90%', alignSelf: 'center' }}>
+            <Text style={styles.emptyText}>Category</Text>
+            <TouchableOpacity 
+              style={[styles.input, { marginBottom: 10 }]} 
+              onPress={() => setShowCategoryDropdown(!showCategoryDropdown)}
+            >
+              <Text style={{ color: form.categoryId ? '#000' : '#888' }}>
+                {form.categoryId ? categories.find(c => c.value === form.categoryId)?.label || 'Select Category' : 'Select Category'}
+              </Text>
+            </TouchableOpacity>
+            {showCategoryDropdown && (
+              <View style={{
+                position: 'absolute',
+                top: 120,
+                left: 20,
+                right: 20,
+                backgroundColor: '#fff',
+                borderWidth: 1,
+                borderColor: '#ccc',
+                borderRadius: 8,
+                zIndex: 1000,
+                maxHeight: 300,
+              }}>
+                <ScrollView style={{ maxHeight: 280 }}>
+                  {categories.map((category) => (
+                    <TouchableOpacity
+                      key={category.value}
+                      style={{ 
+                        padding: 15, 
+                        borderBottomWidth: 1, 
+                        borderBottomColor: '#eee',
+                        backgroundColor: form.categoryId === category.value ? '#f0f0f0' : '#fff'
+                      }}
+                      onPress={() => {
+                        console.log('Selected category:', category.value);
+                        setForm({ ...form, categoryId: category.value });
+                        setShowCategoryDropdown(false);
+                      }}
+                    >
+                      <Text style={{ 
+                        fontSize: 16,
+                        color: form.categoryId === category.value ? '#361696' : '#000',
+                        fontWeight: form.categoryId === category.value ? '600' : '400'
+                      }}>
+                        {category.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
               </View>
-            ))}
-            {form.images.length < MAX_IMAGES && (
-              <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
-                <Text>Add Image</Text>
-              </TouchableOpacity>
             )}
-          </View>
-          {imageError ? <Text style={{ color: 'red', marginBottom: 8 }}>{imageError}</Text> : null}
-          <Text style={styles.emptyText}>Description</Text>
-          <TextInput
-            style={[styles.input, { height: 100 }, errors.description && { borderColor: 'red' }]}
-            multiline
-            placeholder="Enter description"
-            value={form.description}
-            onChangeText={(text) => {
-              setForm({ ...form, description: text });
-              setErrors({ ...errors, description: null });
-            }}
-          />
-          {errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
+            {errors.categoryId && <Text style={styles.errorText}>{errors.categoryId}</Text>}
 
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
-            <Text style={styles.submitText}>{loading ? 'Submitting...' : 'Submit'}</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+      
+            {renderInput('Title', 'title')}
+
+     
+            <Text style={styles.emptyText}>Region</Text>
+            <TouchableOpacity 
+              style={[styles.input, { marginBottom: 10 }]} 
+              onPress={() => setShowRegionDropdown(!showRegionDropdown)}
+            >
+              <Text style={{ color: form.region ? '#000' : '#888' }}>
+                {form.region || 'Select Region'}
+              </Text>
+            </TouchableOpacity>
+            {showRegionDropdown && (
+              <View style={{
+                position: 'absolute',
+                top: 280,
+                left: 20,
+                right: 20,
+                backgroundColor: '#fff',
+                borderWidth: 1,
+                borderColor: '#ccc',
+                borderRadius: 8,
+                zIndex: 1000,
+                maxHeight: 300,
+              }}>
+                <ScrollView style={{ maxHeight: 280 }}>
+                  {regions.map((region) => (
+                    <TouchableOpacity
+                      key={region.value}
+                      style={{ 
+                        padding: 15, 
+                        borderBottomWidth: 1, 
+                        borderBottomColor: '#eee',
+                        backgroundColor: form.region === region.value ? '#f0f0f0' : '#fff'
+                      }}
+                      onPress={() => {
+                        console.log('Selected region:', region.value);
+                        setForm({ ...form, region: region.value });
+                        setShowRegionDropdown(false);
+                      }}
+                    >
+                      <Text style={{ 
+                        fontSize: 16,
+                        color: form.region === region.value ? '#361696' : '#000',
+                        fontWeight: form.region === region.value ? '600' : '400'
+                      }}>
+                        {region.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            
+            {renderInput('Name', 'name')}
+            {renderInput('Phone number', 'phone', 'phone-pad')}
+            {renderInput('Price (GHS)', 'price', 'numeric')}
+
+            <Text style={styles.emptyText}>Delivery Services</Text>
+            <TouchableOpacity 
+              style={[styles.input, { marginBottom: 10 }]} 
+              onPress={() => setShowDeliveryDropdown(!showDeliveryDropdown)}
+            >
+              <Text style={{ color: form.deliveryServices ? '#000' : '#888' }}>
+                {form.deliveryServices || 'Select Delivery Option'}
+              </Text>
+            </TouchableOpacity>
+            {showDeliveryDropdown && (
+              <View style={{
+                backgroundColor: '#fff',
+                borderWidth: 1,
+                borderColor: '#ccc',
+                borderRadius: 8,
+                marginBottom: 10,
+                maxHeight: 200,
+              }}>
+                <ScrollView style={{ maxHeight: 180 }}>
+                  {deliveryServices.map((service) => (
+                    <TouchableOpacity
+                      key={service.value}
+                      style={{ 
+                        padding: 15, 
+                        borderBottomWidth: 1, 
+                        borderBottomColor: '#eee',
+                        backgroundColor: form.deliveryServices === service.value ? '#f0f0f0' : '#fff'
+                      }}
+                      onPress={() => {
+                        console.log('Selected delivery service:', service.value);
+                        setForm({ ...form, deliveryServices: service.value });
+                        setShowDeliveryDropdown(false);
+                      }}
+                    >
+                      <Text style={{ 
+                        fontSize: 16,
+                        color: form.deliveryServices === service.value ? '#361696' : '#000',
+                        fontWeight: form.deliveryServices === service.value ? '600' : '400'
+                      }}>
+                        {service.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+            <Text style={styles.emptyText}>Add Images (up to 3, max 2MB each)</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 10 }}>
+              {form.images.map((img, idx) => (
+                <View key={img} style={{ alignItems: 'center', marginRight: 10 }}>
+                  <Image source={{ uri: img }} style={styles.image} />
+                  <TouchableOpacity onPress={() => removeImage(img)}>
+                    <Text style={styles.removeText}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+              {form.images.length < MAX_IMAGES && (
+                <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
+                  <Text>Add Image</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            {imageError ? <Text style={{ color: 'red', marginBottom: 8 }}>{imageError}</Text> : null}
+            
+            <Text style={styles.emptyText}>Description</Text>
+            <TextInput
+              style={[styles.input, { height: 100 }, errors.description && { borderColor: 'red' }]}
+              multiline
+              placeholder="Enter description"
+              value={form.description}
+              onChangeText={(text) => {
+                setForm({ ...form, description: text });
+                setErrors({ ...errors, description: null });
+              }}
+            />
+            {errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
+
+            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
+              <Text style={styles.submitText}>{loading ? 'Submitting...' : 'Submit'}</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 };
