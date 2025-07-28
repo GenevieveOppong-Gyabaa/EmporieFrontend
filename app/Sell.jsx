@@ -15,7 +15,6 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import RNPickerSelect from 'react-native-picker-select';
 import { BACKEND_URL } from '../constants/config';
 import { useUser } from '../context/userContext';
 
@@ -26,6 +25,20 @@ const regions = [
   'Volta', 'Northern', 'Upper East', 'Upper West', 'Savannah',
   'Bono', 'Bono East', 'North East', 'Oti', 'Ahafo', 'Western North',
 ].map(region => ({ label: region, value: region }));
+
+// Fallback categories if backend is not available
+const fallbackCategories = [
+  { label: 'Electronics', value: '1' },
+  { label: 'Fashion', value: '2' },
+  { label: 'Home', value: '3' },
+  { label: 'Beauty', value: '4' },
+  { label: 'Health', value: '5' },
+  { label: 'Toys', value: '6' },
+  { label: 'Groceries', value: '7' },
+  { label: 'Books', value: '8' },
+  { label: 'Sports', value: '9' },
+  { label: 'Other', value: '10' },
+];
 
 const categories = [
   'Electronics', 'Fashion', 'Home', 'Beauty', 'Health',
@@ -55,7 +68,9 @@ const SellProductScreen = ({ navigation }) => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [imageError, setImageError] = useState('');
-
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [showRegionDropdown, setShowRegionDropdown] = useState(false);
+  const [showDeliveryDropdown, setShowDeliveryDropdown] = useState(false);
 
   const MAX_IMAGES = 3;
   const MAX_IMAGE_SIZE_MB = 2;
@@ -72,13 +87,23 @@ const SellProductScreen = ({ navigation }) => {
   const fetchCategories = async () => {
     setCategoriesLoading(true);
     try {
+      console.log('Fetching categories from:', `${BACKEND_URL}/categories`);
       const res = await fetch(`${BACKEND_URL}/categories`);
       if (!res.ok) throw new Error('Failed to fetch categories');
       const data = await res.json();
-      setCategories(data.map(cat => ({ label: cat.name, value: cat.id })));
+      console.log('Fetched categories:', data);
+      
+      // Map backend categories to RNPickerSelect format
+      const mappedCategories = data.map(cat => ({
+        label: cat.name,
+        value: cat.id.toString() // Convert to string for RNPickerSelect
+      }));
+      console.log('Mapped categories for dropdown:', mappedCategories);
+      setCategories(mappedCategories);
     } catch (err) {
-      Alert.alert('Error', 'Could not load categories');
-      setCategories([]);
+      console.log('Error fetching categories:', err);
+      console.log('Using fallback categories');
+      setCategories(fallbackCategories);
     } finally {
       setCategoriesLoading(false);
     }
@@ -255,16 +280,54 @@ const SellProductScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={{ width: '90%', alignSelf: 'center' }}>
           <Text style={styles.emptyText}>Category</Text>
-          {categoriesLoading ? (
-            <Text>Loading categories...</Text>
-          ) : (
-            <RNPickerSelect
-              onValueChange={(value) => setForm({ ...form, categoryId: value })}
-              items={categories}
-              value={form.categoryId}
-              placeholder={{ label: 'Select Category', value: null }}
-              style={pickerSelectStyles}
-            />
+          <TouchableOpacity 
+            style={[styles.input, { marginBottom: 10 }]} 
+            onPress={() => setShowCategoryDropdown(!showCategoryDropdown)}
+          >
+            <Text style={{ color: form.categoryId ? '#000' : '#888' }}>
+              {form.categoryId ? categories.find(c => c.value === form.categoryId)?.label || 'Select Category' : 'Select Category'}
+            </Text>
+          </TouchableOpacity>
+          {showCategoryDropdown && (
+            <View style={{
+              position: 'absolute',
+              top: 120,
+              left: 20,
+              right: 20,
+              backgroundColor: '#fff',
+              borderWidth: 1,
+              borderColor: '#ccc',
+              borderRadius: 8,
+              zIndex: 1000,
+              maxHeight: 300,
+            }}>
+              <ScrollView style={{ maxHeight: 280 }}>
+                {categories.map((category) => (
+                  <TouchableOpacity
+                    key={category.value}
+                    style={{ 
+                      padding: 15, 
+                      borderBottomWidth: 1, 
+                      borderBottomColor: '#eee',
+                      backgroundColor: form.categoryId === category.value ? '#f0f0f0' : '#fff'
+                    }}
+                    onPress={() => {
+                      console.log('Selected category:', category.value);
+                      setForm({ ...form, categoryId: category.value });
+                      setShowCategoryDropdown(false);
+                    }}
+                  >
+                    <Text style={{ 
+                      fontSize: 16,
+                      color: form.categoryId === category.value ? '#361696' : '#000',
+                      fontWeight: form.categoryId === category.value ? '600' : '400'
+                    }}>
+                      {category.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
           )}
           {errors.categoryId && <Text style={styles.errorText}>{errors.categoryId}</Text>}
 
@@ -273,13 +336,55 @@ const SellProductScreen = ({ navigation }) => {
 
    
           <Text style={styles.emptyText}>Region</Text>
-          <RNPickerSelect
-            onValueChange={(value) => setForm({ ...form, region: value })}
-            items={regions}
-            value={form.region}
-            placeholder={{ label: 'Select Region', value: null }}
-            style={pickerSelectStyles}
-          />
+          <TouchableOpacity 
+            style={[styles.input, { marginBottom: 10 }]} 
+            onPress={() => setShowRegionDropdown(!showRegionDropdown)}
+          >
+            <Text style={{ color: form.region ? '#000' : '#888' }}>
+              {form.region || 'Select Region'}
+            </Text>
+          </TouchableOpacity>
+          {showRegionDropdown && (
+            <View style={{
+              position: 'absolute',
+              top: 280,
+              left: 20,
+              right: 20,
+              backgroundColor: '#fff',
+              borderWidth: 1,
+              borderColor: '#ccc',
+              borderRadius: 8,
+              zIndex: 1000,
+              maxHeight: 300,
+            }}>
+              <ScrollView style={{ maxHeight: 280 }}>
+                {regions.map((region) => (
+                  <TouchableOpacity
+                    key={region.value}
+                    style={{ 
+                      padding: 15, 
+                      borderBottomWidth: 1, 
+                      borderBottomColor: '#eee',
+                      backgroundColor: form.region === region.value ? '#f0f0f0' : '#fff'
+                    }}
+                    onPress={() => {
+                      console.log('Selected region:', region.value);
+                      setForm({ ...form, region: region.value });
+                      setShowRegionDropdown(false);
+                    }}
+                  >
+                    <Text style={{ 
+                      fontSize: 16,
+                      color: form.region === region.value ? '#361696' : '#000',
+                      fontWeight: form.region === region.value ? '600' : '400'
+                    }}>
+                      {region.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
 
           
           {renderInput('Name', 'name')}
@@ -287,13 +392,51 @@ const SellProductScreen = ({ navigation }) => {
           {renderInput('Price (GHS)', 'price', 'numeric')}
 
           <Text style={styles.emptyText}>Delivery Services</Text>
-          <RNPickerSelect
-            onValueChange={(value) => setForm({ ...form, deliveryServices: value })}
-            items={deliveryServices}
-            value={form.deliveryServices}
-            placeholder={{ label: 'Select Delivery Option', value: null }}
-            style={pickerSelectStyles}
-          />
+          <TouchableOpacity 
+            style={[styles.input, { marginBottom: 10 }]} 
+            onPress={() => setShowDeliveryDropdown(!showDeliveryDropdown)}
+          >
+            <Text style={{ color: form.deliveryServices ? '#000' : '#888' }}>
+              {form.deliveryServices || 'Select Delivery Option'}
+            </Text>
+          </TouchableOpacity>
+          {showDeliveryDropdown && (
+            <View style={{
+              backgroundColor: '#fff',
+              borderWidth: 1,
+              borderColor: '#ccc',
+              borderRadius: 8,
+              marginBottom: 10,
+              maxHeight: 200,
+            }}>
+              <ScrollView style={{ maxHeight: 180 }}>
+                {deliveryServices.map((service) => (
+                  <TouchableOpacity
+                    key={service.value}
+                    style={{ 
+                      padding: 15, 
+                      borderBottomWidth: 1, 
+                      borderBottomColor: '#eee',
+                      backgroundColor: form.deliveryServices === service.value ? '#f0f0f0' : '#fff'
+                    }}
+                    onPress={() => {
+                      console.log('Selected delivery service:', service.value);
+                      setForm({ ...form, deliveryServices: service.value });
+                      setShowDeliveryDropdown(false);
+                    }}
+                  >
+                    <Text style={{ 
+                      fontSize: 16,
+                      color: form.deliveryServices === service.value ? '#361696' : '#000',
+                      fontWeight: form.deliveryServices === service.value ? '600' : '400'
+                    }}>
+                      {service.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
           <Text style={styles.emptyText}>Add Images (up to 3, max 2MB each)</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 10 }}>
             {form.images.map((img, idx) => (
