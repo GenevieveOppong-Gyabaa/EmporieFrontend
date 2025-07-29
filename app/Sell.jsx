@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { BACKEND_URL } from '../constants/config';
 import { useUser } from '../context/userContext';
+import { uploadImagesToCloudinary } from '../services/cloudinaryService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -186,16 +187,19 @@ const SellProductScreen = ({ navigation }) => {
         throw new Error('User not authenticated');
       }
 
+      // Upload images to Cloudinary and get URLs
+      const imageUrls = await uploadImagesToCloudinary(form.images);
+
       const payload = {
         name: form.title,
         description: form.description,
         userId: user.id,
         categoryId: form.categoryId,
         price: parseFloat(form.price),
-        imageUrls: [],
+        imageUrls: imageUrls, // send Cloudinary URLs to backend
         tags: [],
       };
-     // products without images
+
       const createRes = await fetch(`${BACKEND_URL}/products`, {
         method: 'POST',
         headers: {
@@ -208,30 +212,6 @@ const SellProductScreen = ({ navigation }) => {
         const errorData = await createRes.json().catch(() => ({}));
         throw new Error(errorData.error || errorData.message || 'Failed to create product');
       }
-      const createdProduct = await createRes.json();
-      // products with images
-      if (form.images.length > 0) {
-        const imageData = new FormData();
-        form.images.forEach((img, idx) => {
-          imageData.append('images', {
-            uri: img,
-            name: `product-image-${idx}.jpg`,
-            type: 'image/jpeg',
-          });
-        });
-        const uploadRes = await fetch(`${BACKEND_URL}/products/${createdProduct.id}/upload-images?userId=${user.id}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${user.token}`,
-          },
-          body: imageData,
-        });
-        if (!uploadRes.ok) {
-          const errorData = await uploadRes.json().catch(() => ({}));
-          throw new Error(errorData.error || errorData.message || 'Failed to upload image');
-        }
-      }
       Alert.alert('Success', 'Product submitted!');
       setForm({
         categoryId: '',
@@ -242,6 +222,7 @@ const SellProductScreen = ({ navigation }) => {
         phone: '',
         deliveryServices: '',
         images: [],
+        price: '',
       });
       setErrors({});
       setImageError('');

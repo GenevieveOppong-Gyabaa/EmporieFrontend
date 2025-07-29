@@ -1,5 +1,5 @@
 
-export const BACKEND_URL = 'http://10.132.202.162:8080';
+export const BACKEND_URL = 'http://10.30.23.136:8080';
 
 
 export const API_ENDPOINTS = {

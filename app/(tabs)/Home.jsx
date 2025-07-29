@@ -80,10 +80,11 @@ export default function HomeScreen() {
   };
 
   const handleProductPress = (product) => {
-    // Navigate to product details screen
+    // Ensure productId is a string
+    const productId = product.id?.toString();
     router.push({
       pathname: '../Details',
-      params: { productId: product.id }
+      params: { productId },
     });
   };
 
@@ -262,7 +263,7 @@ export default function HomeScreen() {
             columnWrapperStyle={{ justifyContent: 'space-between' }}
             keyExtractor={(item) => item.id.toString()}
             scrollEnabled={false}
-            renderItem={({ item }) => <ProductCard {...item} onPress={() => handleProductPress(item)} />}
+            renderItem={({ item }) => <ProductCard {...item} id={item.id} onPress={() => handleProductPress(item)} />}
             ListEmptyComponent={
               <Text style={{ textAlign: 'center', color: '#999', marginVertical: 20 }}>
                 No products yet.
@@ -304,15 +305,18 @@ export default function HomeScreen() {
   );
 }
 
-const ProductCard = ({ imageUrls, name, price, views, onPress }) => {
+const ProductCard = ({ imageUrls, name, price, views, id, onPress }) => {
   // Get the first image URL or use a placeholder
-  const imageUrl = imageUrls && imageUrls.length > 0 
-    ? `${API_ENDPOINTS.BACKEND_URL}${imageUrls[0]}` 
-    : 'https://via.placeholder.com/150x150?text=No+Image';
-  
+  let imageUrl = imageUrls && imageUrls.length > 0 ? imageUrls[0] : null;
+  if (imageUrl && !imageUrl.startsWith('http')) {
+    imageUrl = `${API_ENDPOINTS.BACKEND_URL}${imageUrl}`;
+  }
+  if (!imageUrl) {
+    imageUrl = 'https://via.placeholder.com/150x150?text=No+Image';
+  }
   // Calculate rating based on views (simple algorithm)
   const rating = Math.min(5, Math.max(1, Math.floor(views / 10)));
-  
+
   return (
     <TouchableOpacity style={styles.productCard} onPress={onPress}>
       <Image 
