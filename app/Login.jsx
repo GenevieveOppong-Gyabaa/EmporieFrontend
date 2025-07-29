@@ -44,8 +44,36 @@ export default function LoginScreen() {
         throw new Error(errorData.message || 'Login failed');
       }
       
+      // Parse the response data
+      const data = await response.json();
+      console.log('Login response data:', data);
+      console.log('All response fields:', Object.keys(data));
+      
+      // Check for different possible field names
+      const userId = data.id || data.userId || data.user_id;
+      const userToken = data.token || data.accessToken || data.authToken || data.jwt || data.access_token;
+      
+      console.log('Found userId:', userId);
+      console.log('Found userToken:', userToken ? 'Present' : 'Missing');
+      
+      // Check if we have the required fields
+      if (!userId || !userToken) {
+        console.log('Missing required fields in response:');
+        console.log('- userId:', userId);
+        console.log('- userToken:', userToken);
+        console.log('- email:', data.email);
+        throw new Error('Invalid response from server - missing user data');
+      }
+      
       // Save user data after successful login
-      setUser({ email });
+      const userData = {
+        id: userId,
+        email: data.email || email,
+        token: userToken,
+      };
+      
+      console.log('Setting user data:', userData);
+      setUser(userData);
       Alert.alert('Success', 'Logged in successfully!');
       router.replace('./(tabs)/Home');
     } catch (error) {

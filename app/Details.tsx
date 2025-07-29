@@ -32,7 +32,8 @@ const PRIMARY = '#361696';
 
 export default function ProductDetailsScreen() {
   const router = useRouter();
-  const { productId } = useLocalSearchParams();
+  const { id, productId } = useLocalSearchParams();
+  const actualProductId = productId || id;
   const { user } = useUser();
   
   const [product, setProduct] = useState<Product | null>(null);
@@ -47,10 +48,10 @@ export default function ProductDetailsScreen() {
   const [chatMessage, setChatMessage] = useState('');
 
   useEffect(() => {
-    if (productId) {
+    if (actualProductId) {
       loadProductDetails();
     }
-  }, [productId]);
+  }, [actualProductId]);
 
   const loadProductDetails = async () => {
     try {
@@ -61,17 +62,17 @@ export default function ProductDetailsScreen() {
       
       try {
         [productData, reviewsData, similarData] = await Promise.all([
-          getProductDetails(productId as string),
-          getProductReviews(productId as string),
-          getSimilarProducts(productId as string),
+          getProductDetails(actualProductId as string),
+          getProductReviews(actualProductId as string),
+          getSimilarProducts(actualProductId as string),
         ]);
       } catch (backendError) {
         console.log('Backend not available, using mock data:', backendError);
         // Use mock data as fallback
         [productData, reviewsData, similarData] = await Promise.all([
-          mockGetProductDetails(productId as string),
-          mockGetProductReviews(productId as string),
-          mockGetSimilarProducts(productId as string),
+          mockGetProductDetails(actualProductId as string),
+          mockGetProductReviews(actualProductId as string),
+          mockGetSimilarProducts(actualProductId as string),
         ]);
       }
       
@@ -512,7 +513,7 @@ export default function ProductDetailsScreen() {
             router.push({
               pathname: './cart/checkout',
               params: { 
-                productId: productId,
+                productId: actualProductId,
                 quantity: quantity,
                 selectedSize: selectedSize,
                 selectedColor: selectedColor
