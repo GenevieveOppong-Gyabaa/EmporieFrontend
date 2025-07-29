@@ -17,6 +17,7 @@ import {
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useUser } from '../../context/userContext';
 import { API_ENDPOINTS } from '../../constants/config';
 
 import Art from '../../assets/images/Art.png';
@@ -50,11 +51,13 @@ const fallbackCategories = [
 export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user } = useUser();
 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [productData, setProductData] = useState([]);
   const [categories, setCategories] = useState(fallbackCategories);
+  const [allCategories, setAllCategories] = useState(fallbackCategories);
   const [loading, setLoading] = useState(true);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
 
@@ -76,54 +79,99 @@ export default function HomeScreen() {
     });
   };
 
-  // Fetch categories from backend
+  const handleProductPress = (product) => {
+    // Navigate to product details screen
+    router.push({
+      pathname: '../Details',
+      params: { productId: product.id }
+    });
+  };
+
+  // Fetch recommended categories from backend
   useEffect(() => {
-    fetchCategories();
+    fetchRecommendedCategories();
+    fetchAllCategories();
   }, []);
 
-  // Fetch products from backend
+  // Fetch trending picks from backend
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    fetchTrendingPicks();
+  }, [user]);
 
-  const fetchCategories = async () => {
+  const fetchRecommendedCategories = async () => {
     try {
       setCategoriesLoading(true);
-      const response = await fetch(API_ENDPOINTS.CATEGORIES);
+      const response = await fetch(API_ENDPOINTS.RECOMMENDED_CATEGORIES);
       if (response.ok) {
         const data = await response.json();
-        // Map backend categories to include local images
-        const mappedCategories = data.map(cat => ({
-          ...cat,
+        // Map backend categories to include local images and limit to top 4
+        const mappedCategories = data.slice(0, 4).map(cat => ({
+          id: cat.id,
+          name: cat.name,
+          productCount: cat.productCount,
           image: getCategoryImage(cat.name)
         }));
         setCategories(mappedCategories);
       } else {
         console.log('Backend not available, using fallback categories');
-        setCategories(fallbackCategories);
+        setCategories(fallbackCategories.slice(0, 4));
       }
     } catch (error) {
-      console.log('Error fetching categories, using fallback:', error);
-      setCategories(fallbackCategories);
+      console.log('Error fetching recommended categories, using fallback:', error);
+      setCategories(fallbackCategories.slice(0, 4));
     } finally {
       setCategoriesLoading(false);
     }
   };
 
-  const fetchProducts = async () => {
+  const fetchAllCategories = async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.CATEGORIES);
+      if (response.ok) {
+        const data = await response.json();
+        // Map backend categories to include local images
+        const mappedCategories = data.map(cat => ({
+          id: cat.id,
+          name: cat.name,
+          image: getCategoryImage(cat.name)
+        }));
+        setAllCategories(mappedCategories);
+      } else {
+        console.log('Backend not available, using fallback categories for modal');
+        setAllCategories(fallbackCategories);
+      }
+    } catch (error) {
+      console.log('Error fetching all categories, using fallback:', error);
+      setAllCategories(fallbackCategories);
+    }
+  };
+
+  const fetchTrendingPicks = async () => {
     try {
       setLoading(true);
-      const response = await fetch(API_ENDPOINTS.PRODUCTS);
+      
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add authorization header if user is logged in
+      if (user && user.token) {
+        headers['Authorization'] = `Bearer ${user.token}`;
+      }
+      
+      const response = await fetch(API_ENDPOINTS.TRENDING_PICKS, {
+        headers,
+      });
+      
       if (response.ok) {
         const data = await response.json();
         setProductData(data);
       } else {
-        console.log('Backend not available, using mock data');
-        // Fallback to mock data if backend is not available
+        console.log('Backend not available, using empty trending picks');
         setProductData([]);
       }
     } catch (error) {
-      console.log('Error fetching products, using mock data:', error);
+      console.log('Error fetching trending picks, using empty data:', error);
       setProductData([]);
     } finally {
       setLoading(false);
@@ -143,6 +191,8 @@ export default function HomeScreen() {
       'Art': Art,
       'Sports': Sports,
       'Home Decor': HomeDecor,
+      'Home': HomeDecor,
+      'Other': Electronics, // Default for other categories
     };
     return imageMap[categoryName] || Beauty; // Default to Beauty if not found
   };
@@ -186,7 +236,7 @@ export default function HomeScreen() {
           <ActivityIndicator size="large" color="#361696" style={{ marginVertical: 20 }} />
         ) : (
           <View style={styles.categoriesGrid}>
-            {categories.slice(0, 4).map((c) => (
+            {categories.map((c) => (
               <TouchableOpacity key={c.id} style={styles.categoryCard} onPress={() => handleCategoryPress(c)}>
                 <Image source={c.image} style={styles.categoryImage} />
                 <View style={styles.categoryLabelWrap}>
@@ -212,7 +262,7 @@ export default function HomeScreen() {
             columnWrapperStyle={{ justifyContent: 'space-between' }}
             keyExtractor={(item) => item.id.toString()}
             scrollEnabled={false}
-            renderItem={({ item }) => <ProductCard {...item} />}
+            renderItem={({ item }) => <ProductCard {...item} onPress={() => handleProductPress(item)} />}
             ListEmptyComponent={
               <Text style={{ textAlign: 'center', color: '#999', marginVertical: 20 }}>
                 No products yet.
@@ -227,7 +277,7 @@ export default function HomeScreen() {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Select a Category</Text>
             <ScrollView>
-              {categories.map((c) => (
+              {allCategories.map((c) => (
                 <TouchableOpacity
                   key={c.id}
                   onPress={() => handleCategorySelect(c)}
@@ -254,28 +304,42 @@ export default function HomeScreen() {
   );
 }
 
-const ProductCard = ({ imageUrl, title, price, rating }) => (
-  <View style={styles.productCard}>
-    <Image source={{ uri: imageUrl }} style={styles.productImg} />
-    <Text numberOfLines={1} style={styles.title}>
-      {title}
-    </Text>
-    <View style={styles.ratingRow}>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Ionicons
-          key={i}
-          name={i < Math.round(rating) ? 'star' : 'star-outline'}
-          size={12}
-          color="#000"
-        />
-      ))}
-      <Text style={styles.ratingText}>{Math.round(rating * 10) / 10}</Text>
-    </View>
-    <View style={styles.priceRow}>
-      <Text style={styles.price}>GHC{price.toFixed(2)}</Text>
-    </View>
-  </View>
-);
+const ProductCard = ({ imageUrls, name, price, views, onPress }) => {
+  // Get the first image URL or use a placeholder
+  const imageUrl = imageUrls && imageUrls.length > 0 
+    ? `${API_ENDPOINTS.BACKEND_URL}${imageUrls[0]}` 
+    : 'https://via.placeholder.com/150x150?text=No+Image';
+  
+  // Calculate rating based on views (simple algorithm)
+  const rating = Math.min(5, Math.max(1, Math.floor(views / 10)));
+  
+  return (
+    <TouchableOpacity style={styles.productCard} onPress={onPress}>
+      <Image 
+        source={{ uri: imageUrl }} 
+        style={styles.productImg}
+        defaultSource={require('../../assets/images/Item1.png')}
+      />
+      <Text numberOfLines={1} style={styles.title}>
+        {name}
+      </Text>
+      <View style={styles.ratingRow}>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Ionicons
+            key={i}
+            name={i < rating ? 'star' : 'star-outline'}
+            size={12}
+            color="#000"
+          />
+        ))}
+        <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
+      </View>
+      <View style={styles.priceRow}>
+        <Text style={styles.price}>GHC {price ? price.toFixed(2) : '0.00'}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 // Your existing styles (unchanged, already complete)
 const styles = StyleSheet.create({
